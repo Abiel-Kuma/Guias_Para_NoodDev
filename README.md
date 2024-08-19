@@ -7,8 +7,9 @@ Cada guía está diseñada para que puedas seguir mis pasos y llegar a resultado
 ## Índice
 1. [Introducción](#introducción)
 2. [Guías Disponibles](#guías-disponibles)
-    - [Guía 1: Introducción a React](#guía-1-introducción-a-python)
-    - [Guía 2: Configuración de Webpack](#guía-2-introducción-a-FastApi)
+    - [Guía 1: Introducción a python](#python_guía/README.md)
+    - [Guía 2: Introducción a Backend](#backend_guía/README.md)
+    - [Guía 3: Configuración de FastApi](#fastapi_guía/README.md)
 4. [Contribuir](#contribuir)
 
 ## Contribuir
