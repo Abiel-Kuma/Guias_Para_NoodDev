@@ -32,13 +32,13 @@ FastAPI no solo es fácil de usar sino también extremadamente rápido, aprovech
 7. [Implementación de WebSockets](#7-implementación-de-websockets)
 
 ##### **Parte 3: Experto**
-1. [Optimización y escalabilidad]
-2. [Despliegue en producción con Docker]
-3. [Testing avanzado y CI/CD]
-4. [Integración con otras tecnologías (Celery, Redis)]
-5. [Arquitecturas orientadas a microservicios]
-6. [Gestión de permisos y roles complejos]
-7. [Creación de plugins y extensiones]
+1. [Optimización y escalabilidad](#1-optimización-y-escalabilidad)
+2. [Despliegue en producción con Docker](#2-despliegue-en-producción-con-docker)
+3. [Testing avanzado y CI/CD](#3-testing-avanzado-y-cicd)
+4. [Integración con otras tecnologías (Celery, Redis)](#4-integración-con-otras-tecnologías-celery-redis)
+5. [Arquitecturas orientadas a microservicios](#5-arquitecturas-orientadas-a-microservicios)
+6. [Gestión de permisos y roles complejos](#6-gestión-de-permisos-y-roles-complejos)
+7. [Creación de plugins y extensiones](#7-creación-de-plugins-y-extensiones)
 
 ---
 ### Parte 1: Principiante
@@ -2102,3 +2102,1113 @@ Los WebSockets permiten la comunicación bidireccional entre el servidor y el cl
 
     - **`Depends(oauth2_scheme)`**: Dependencia que maneja la autenticación.
     - **`get_current_user`**: Verifica el token para autenticar la conexión.
+
+---
+
+
+#### **1. Optimización y escalabilidad**
+
+En esta sección, exploraremos técnicas avanzadas para optimizar el rendimiento de tu aplicación FastAPI y escalarla para manejar una mayor carga de tráfico. Aprenderás sobre cómo aprovechar el poder de las configuraciones asíncronas, cómo implementar técnicas de caché y balanceo de carga, y cómo utilizar herramientas de monitoreo para asegurarte de que tu aplicación se mantenga rápida y estable bajo presión.
+
+##### **Optimización del rendimiento**
+
+1. **Configuración asíncrona avanzada**:
+    - Aprovecha la asincronía para manejar más solicitudes simultáneas sin bloquear el servidor.
+    - Usa `async` y `await` correctamente para mejorar la eficiencia de las operaciones de I/O.
+
+2. **Caché y almacenamiento en memoria**:
+    - Implementa estrategias de caché con Redis o Memcached para reducir la carga en la base de datos.
+    - Usa `fastapi_cache` o técnicas personalizadas para cachear resultados de consultas frecuentes.
+
+3. **Minimización de latencia**:
+    - Usa HTTP/2 para mejorar la velocidad de transferencia de datos.
+    - Implementa Compresión Gzip para reducir el tamaño de las respuestas.
+
+##### **Escalabilidad**
+
+1. **Balanceo de carga**:
+    - Configura un balanceador de carga como Nginx o HAProxy para distribuir las solicitudes entre múltiples instancias de tu aplicación.
+    - Implementa políticas de balanceo de carga como Round Robin o Least Connections.
+
+2. **Escalado horizontal**:
+    - Usa herramientas como Kubernetes o Docker Swarm para escalar horizontalmente tu aplicación.
+    - Implementa autoescalado basado en métricas de uso (CPU, memoria).
+
+3. **Uso de servicios en la nube**:
+    - Aprovecha servicios en la nube como AWS Lambda, Google Cloud Run, o Azure Functions para escalar de manera dinámica.
+    - Configura bases de datos escalables como Amazon Aurora o Google Cloud SQL.
+
+##### **Monitoreo y análisis**
+
+1. **Monitoreo del rendimiento**:
+    - Usa herramientas como Prometheus y Grafana para monitorear el rendimiento en tiempo real.
+    - Configura alertas basadas en métricas clave (tiempo de respuesta, uso de recursos).
+
+2. **Análisis de registros**:
+    - Implementa soluciones de gestión de logs como ELK Stack (Elasticsearch, Logstash, Kibana) para analizar y visualizar registros.
+    - Configura logging asíncrono para reducir el impacto en el rendimiento.
+
+3. **Pruebas de carga**:
+    - Realiza pruebas de carga con herramientas como Locust o Apache JMeter para simular tráfico y medir la capacidad de tu aplicación.
+    - Identifica cuellos de botella y optimiza el código o la infraestructura en consecuencia.
+
+---
+
+#### **2. Despliegue en producción con Docker**
+
+El despliegue en producción es un paso crítico para asegurar que tu aplicación FastAPI funcione de manera eficiente y segura en un entorno real. Docker se ha convertido en una herramienta estándar para empaquetar aplicaciones, facilitando su despliegue en cualquier entorno, independientemente de las diferencias en configuraciones del sistema operativo o software instalado.
+
+##### **Paso 1: Crear un Dockerfile para FastAPI**
+
+1. **Estructura básica del Dockerfile**:
+
+    Un Dockerfile define el entorno en el que se ejecutará tu aplicación. Aquí tienes un ejemplo básico para una aplicación FastAPI:
+
+    ```dockerfile
+    # Utiliza una imagen base ligera de Python
+    FROM python:3.11-slim
+
+    # Establece el directorio de trabajo en el contenedor
+    WORKDIR /app
+
+    # Copia los archivos necesarios al contenedor
+    COPY . /app
+
+    # Instala las dependencias de la aplicación
+    RUN pip install --no-cache-dir --upgrade pip \
+        && pip install --no-cache-dir -r requirements.txt
+
+    # Expone el puerto en el que la aplicación correrá
+    EXPOSE 8000
+
+    # Comando para ejecutar la aplicación
+    CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ```
+
+    - **`FROM python:3.11-slim`**: Usa una imagen base ligera de Python.
+    - **`WORKDIR /app`**: Establece el directorio de trabajo en el contenedor.
+    - **`COPY . /app`**: Copia los archivos de la aplicación al contenedor.
+    - **`RUN pip install`**: Instala las dependencias listadas en `requirements.txt`.
+    - **`EXPOSE 8000`**: Expone el puerto 8000, donde se ejecutará la aplicación.
+    - **`CMD ["uvicorn", "main:app"]`**: Comando que inicia la aplicación usando Uvicorn.
+
+2. **Optimización del Dockerfile**:
+
+    Optimiza el Dockerfile para crear imágenes más ligeras y rápidas:
+
+    - **Usar capas intermedias**: Cada comando en el Dockerfile crea una nueva capa, por lo que es importante combinar comandos relacionados.
+    - **Eliminar archivos innecesarios**: Usa `.dockerignore` para excluir archivos que no son necesarios en la imagen final.
+
+    ```dockerfile
+    # Añadir optimizaciones al Dockerfile
+    FROM python:3.11-slim
+
+    WORKDIR /app
+
+    COPY requirements.txt /app/
+    RUN pip install --no-cache-dir --upgrade pip \
+        && pip install --no-cache-dir -r requirements.txt
+
+    COPY . /app
+
+    EXPOSE 8000
+
+    CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ```
+
+##### **Paso 2: Construir y correr el contenedor Docker**
+
+1. **Construir la imagen Docker**:
+
+    Usa el comando `docker build` para construir la imagen:
+
+    ```bash
+    docker build -t myfastapiapp .
+    ```
+
+    - **`-t myfastapiapp`**: Etiqueta la imagen como `myfastapiapp`.
+    - **`.`**: Indica que el Dockerfile está en el directorio actual.
+
+2. **Correr el contenedor Docker**:
+
+    Una vez construida la imagen, puedes correr el contenedor:
+
+    ```bash
+    docker run -d --name myfastapiapp_container -p 8000:8000 myfastapiapp
+    ```
+
+    - **`-d`**: Corre el contenedor en segundo plano (detached).
+    - **`--name myfastapiapp_container`**: Nombra el contenedor `myfastapiapp_container`.
+    - **`-p 8000:8000`**: Mapea el puerto 8000 del contenedor al puerto 8000 del host.
+
+##### **Paso 3: Despliegue en producción**
+
+1. **Configuración para producción**:
+
+    Asegúrate de que tu aplicación esté configurada para correr en un entorno de producción:
+
+    - **Usar Gunicorn**: Aunque Uvicorn es excelente para desarrollo, Gunicorn es más robusto para producción.
+    - **Optimizar la configuración de Uvicorn**: Usa múltiples workers y threads para manejar más solicitudes concurrentes.
+
+    ```dockerfile
+    FROM python:3.11-slim
+
+    WORKDIR /app
+
+    COPY requirements.txt /app/
+    RUN pip install --no-cache-dir --upgrade pip \
+        && pip install --no-cache-dir -r requirements.txt
+
+    COPY . /app
+
+    EXPOSE 8000
+
+    CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "main:app", "--workers", "4", "--bind", "0.0.0.0:8000"]
+    ```
+
+2. **Integración con Docker Compose**:
+
+    Docker Compose permite definir y correr aplicaciones multi-contenedor. Aquí tienes un ejemplo básico de cómo usarlo:
+
+    ```yaml
+    version: '3.8'
+    services:
+      web:
+        build: .
+        ports:
+          - "8000:8000"
+        environment:
+          - ENV=production
+    ```
+
+    - **`services`**: Define los servicios que correrán en contenedores.
+    - **`build: .`**: Construye la imagen Docker usando el Dockerfile en el directorio actual.
+    - **`ports`**: Mapea el puerto 8000 del contenedor al puerto 8000 del host.
+    - **`environment`**: Define variables de entorno para la aplicación.
+
+##### **Paso 4: Monitoreo y manejo de logs**
+
+1. **Gestión de logs**:
+
+    Configura el manejo de logs en producción:
+
+    - **Volúmenes para logs**: Usa volúmenes Docker para guardar logs persistentes.
+    - **Integración con servicios de logs**: Configura la exportación de logs a servicios como ELK, Datadog, o AWS CloudWatch.
+
+    ```yaml
+    services:
+      web:
+        build: .
+        ports:
+          - "8000:8000"
+        volumes:
+          - ./logs:/app/logs
+        logging:
+          driver: "json-file"
+          options:
+            max-size: "10m"
+            max-file: "3"
+    ```
+
+    - **`volumes`**: Mapea un directorio en el host para almacenar logs.
+    - **`logging`**: Configura la gestión de logs con limitación de tamaño y rotación.
+
+---
+
+
+#### **3. Testing avanzado y CI/CD**
+
+El testing avanzado y la integración continua/despliegue continuo (CI/CD) son componentes esenciales para mantener la calidad y la estabilidad de las aplicaciones en producción. En esta sección, exploraremos cómo implementar pruebas avanzadas en FastAPI, automatizar el proceso de despliegue, y cómo utilizar herramientas de CI/CD para asegurar que cada cambio en el código sea probado y desplegado de manera eficiente.
+
+##### **Paso 1: Testing avanzado en FastAPI**
+
+1. **Pruebas unitarias y de integración**:
+
+    - **Pruebas unitarias**: Se enfocan en probar funciones individuales. Puedes usar `pytest` para escribir pruebas unitarias en FastAPI.
+
+    ```python
+    from fastapi.testclient import TestClient
+    from .main import app
+
+    client = TestClient(app)
+
+    def test_read_main():
+        response = client.get("/")
+        assert response.status_code == 200
+        assert response.json() == {"message": "Hello World"}
+    ```
+
+    - **Pruebas de integración**: Verifican cómo diferentes partes de la aplicación trabajan juntas. Puedes probar endpoints completos, incluyendo la interacción con bases de datos.
+
+    ```python
+    def test_create_item():
+        response = client.post("/items/", json={"name": "Test item", "price": 10.0})
+        assert response.status_code == 200
+        assert response.json()["name"] == "Test item"
+    ```
+
+2. **Mocking y pruebas aisladas**:
+
+    - **Uso de `pytest-mock`**: Para simular dependencias externas como bases de datos o servicios externos.
+
+    ```python
+    from unittest.mock import patch
+
+    @patch("app.database.get_db")
+    def test_read_item(mock_db):
+        mock_db.return_value.query.return_value.filter.return_value.first.return_value = {"id": 1, "name": "Mocked item"}
+        response = client.get("/items/1")
+        assert response.status_code == 200
+        assert response.json()["name"] == "Mocked item"
+    ```
+
+    - **Simulación de respuestas HTTP**: Utiliza `responses` para simular respuestas de APIs externas.
+
+    ```python
+    import responses
+
+    @responses.activate
+    def test_external_api_call():
+        responses.add(responses.GET, 'http://api.example.com/data', json={"key": "value"}, status=200)
+        response = client.get("/external-data")
+        assert response.status_code == 200
+        assert response.json() == {"key": "value"}
+    ```
+
+3. **Pruebas de rendimiento y carga**:
+
+    - **Uso de `locust`**: Para simular tráfico y medir el rendimiento bajo carga.
+
+    ```python
+    from locust import HttpUser, task, between
+
+    class LoadTestUser(HttpUser):
+        wait_time = between(1, 5)
+
+        @task
+        def load_test(self):
+            self.client.get("/items/")
+    ```
+
+    - **Integración con `pytest-benchmark`**: Para medir y comparar el rendimiento de diferentes partes de la aplicación.
+
+    ```python
+    def test_benchmark_endpoint(benchmark):
+        result = benchmark(client.get, "/items/")
+        assert result.status_code == 200
+    ```
+
+##### **Paso 2: Configuración de CI/CD**
+
+1. **Configurar un pipeline de CI/CD**:
+
+    - **Uso de GitHub Actions**: GitHub Actions permite automatizar el proceso de testing y despliegue directamente desde tu repositorio.
+
+    ```yaml
+    name: CI/CD Pipeline
+
+    on:
+      push:
+        branches:
+          - main
+      pull_request:
+        branches:
+          - main
+
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+
+        steps:
+        - uses: actions/checkout@v2
+
+        - name: Set up Python
+          uses: actions/setup-python@v2
+          with:
+            python-version: '3.11'
+
+        - name: Install dependencies
+          run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+            pip install pytest pytest-cov
+
+        - name: Run tests
+          run: |
+            pytest --cov=app tests/
+
+      deploy:
+        needs: test
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
+
+        steps:
+        - uses: actions/checkout@v2
+
+        - name: Deploy to Production
+          run: |
+            echo "Deploying application..."
+            # Añadir comandos de despliegue (ej. Docker, SSH)
+    ```
+
+    - **Integración con Docker**: Configura tu pipeline para construir y publicar imágenes Docker automáticamente.
+
+    ```yaml
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: user/repo:latest
+    ```
+
+2. **Despliegue continuo**:
+
+    - **Uso de servicios como Heroku, AWS, GCP**: Configura tu pipeline para que el despliegue ocurra automáticamente después de que se pasen todos los tests.
+
+    - **Monitoreo de despliegue**: Implementa monitoreo para detectar errores y revertir despliegues fallidos automáticamente.
+
+##### **Paso 3: Estrategias avanzadas de CI/CD**
+
+1. **Despliegue progresivo (Canary releases)**:
+
+    - **Despliegue controlado**: Despliega una nueva versión de la aplicación a un subconjunto de usuarios antes de lanzarla completamente.
+
+    ```yaml
+    - name: Canary Release
+      run: |
+        # Comandos para despliegue canario
+    ```
+
+2. **Pruebas automáticas de regresión**:
+
+    - **Configuración de pruebas de regresión**: Asegura que nuevas actualizaciones no rompan funcionalidades existentes.
+
+3. **Integración con herramientas de seguridad**:
+
+    - **Análisis de seguridad en el pipeline**: Usa herramientas como `bandit` o `safety` para detectar vulnerabilidades en el código.
+
+    ```yaml
+    - name: Security check
+      run: |
+        pip install bandit
+        bandit -r app/
+    ```
+
+---
+
+#### **4. Integración con otras tecnologías (Celery, Redis)**
+
+Integrar FastAPI con tecnologías como Celery y Redis te permite manejar tareas en segundo plano y gestionar datos de manera eficiente, lo que es crucial para aplicaciones avanzadas que requieren un procesamiento asíncrono y una gestión rápida de sesiones y caché. En esta sección, aprenderás cómo integrar estas tecnologías en tu aplicación FastAPI.
+
+##### **Paso 1: Integración con Celery para tareas en segundo plano**
+
+1. **Configurar Celery en FastAPI**:
+
+    - **Instalación de Celery y librerías necesarias**:
+
+    ```bash
+    pip install celery[redis] fastapi[celery]
+    ```
+
+    - **Configuración básica de Celery**: Crea un archivo `celery_app.py` para configurar Celery.
+
+    ```python
+    from celery import Celery
+
+    celery_app = Celery(
+        "myapp",
+        broker="redis://localhost:6379/0",
+        backend="redis://localhost:6379/0"
+    )
+
+    @celery_app.task
+    def add(x, y):
+        return x + y
+    ```
+
+    - **Integración con FastAPI**: En tu aplicación FastAPI, importa y usa Celery para ejecutar tareas en segundo plano.
+
+    ```python
+    from fastapi import FastAPI
+    from .celery_app import celery_app
+
+    app = FastAPI()
+
+    @app.post("/process/")
+    def process_task(x: int, y: int):
+        task = celery_app.send_task("myapp.add", args=[x, y])
+        return {"task_id": task.id, "status": "Processing"}
+    ```
+
+2. **Manejo de resultados de tareas**:
+
+    - **Recuperar resultados**: Usa el ID de la tarea para recuperar el resultado.
+
+    ```python
+    from fastapi import HTTPException
+
+    @app.get("/result/{task_id}")
+    def get_result(task_id: str):
+        result = celery_app.AsyncResult(task_id)
+        if result.state == "PENDING":
+            raise HTTPException(status_code=202, detail="Task still processing")
+        elif result.state != "SUCCESS":
+            raise HTTPException(status_code=400, detail="Task failed")
+        return {"status": result.state, "result": result.result}
+    ```
+
+    - **Manejo de errores**: Implementa un manejo de errores adecuado para tareas fallidas.
+
+    ```python
+    @celery_app.task(bind=True)
+    def faulty_task(self, x, y):
+        try:
+            # Simulate a faulty task
+            result = x / y
+        except Exception as exc:
+            raise self.retry(exc=exc)
+        return result
+    ```
+
+##### **Paso 2: Integración con Redis para caché y gestión de sesiones**
+
+1. **Configurar Redis como caché**:
+
+    - **Instalación de Redis y librerías necesarias**:
+
+    ```bash
+    pip install redis fastapi-cache2
+    ```
+
+    - **Configuración básica de Redis**: Configura Redis como backend de caché en FastAPI.
+
+    ```python
+    from fastapi import FastAPI
+    from fastapi_cache import FastAPICache
+    from fastapi_cache.backends.redis import RedisBackend
+    import redis
+
+    app = FastAPI()
+
+    @app.on_event("startup")
+    async def startup():
+        redis_client = redis.Redis(host='localhost', port=6379, db=0)
+        FastAPICache.init(RedisBackend(redis_client), prefix="fastapi-cache")
+    ```
+
+    - **Caché en endpoints**: Usa decoradores para cachear respuestas de endpoints.
+
+    ```python
+    from fastapi_cache.decorator import cache
+
+    @app.get("/items/{item_id}")
+    @cache(expire=60)
+    async def read_item(item_id: int):
+        return {"item_id": item_id, "value": "This is a cached response"}
+    ```
+
+2. **Gestión de sesiones con Redis**:
+
+    - **Implementación de sesiones**: Usa Redis para almacenar y gestionar sesiones de usuario.
+
+    ```python
+    from fastapi import Depends, HTTPException, status
+    from fastapi.security import OAuth2PasswordBearer
+    import redis
+
+    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+    redis_client = redis.Redis(host='localhost', port=6379, db=0)
+
+    def get_current_user(token: str = Depends(oauth2_scheme)):
+        user = redis_client.get(token)
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        return user
+    ```
+
+    - **Almacenar sesiones**: Guarda tokens de sesión en Redis cuando el usuario se autentica.
+
+    ```python
+    @app.post("/token")
+    async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+        user = authenticate_user(form_data.username, form_data.password)
+        if not user:
+            raise HTTPException(status_code=400, detail="Incorrect username or password")
+        token = create_access_token(user)
+        redis_client.setex(token, 3600, user)  # Expira en una hora
+        return {"access_token": token, "token_type": "bearer"}
+    ```
+
+##### **Paso 3: Casos de uso avanzados**
+
+1. **Procesamiento masivo de datos**:
+
+    - **Usar Celery para procesar grandes volúmenes de datos en segundo plano**: Celery es ideal para tareas que requieren un procesamiento intensivo y no pueden ser manejadas en tiempo real.
+
+    ```python
+    @celery_app.task
+    def process_large_dataset(dataset):
+        # Procesamiento de grandes volúmenes de datos
+        processed_data = [process_item(item) for item in dataset]
+        return processed_data
+    ```
+
+    - **Usar Redis para almacenar temporalmente los resultados**: Almacena resultados intermedios en Redis para su acceso rápido.
+
+    ```python
+    def save_intermediate_results(task_id, data):
+        redis_client.setex(task_id, 3600, data)  # Expira en una hora
+    ```
+
+2. **Notificaciones en tiempo real**:
+
+    - **Implementar notificaciones push usando Redis**: Redis puede ser usado para manejar canales de publicación/suscripción (`pub/sub`) para notificaciones en tiempo real.
+
+    ```python
+    def send_notification(channel, message):
+        redis_client.publish(channel, message)
+    ```
+
+---
+
+#### **5. Arquitecturas orientadas a microservicios**
+
+Las arquitecturas orientadas a microservicios dividen una aplicación en servicios pequeños, independientes y desplegables, cada uno de los cuales ejecuta una función específica. Esta aproximación facilita el escalado, la mantenibilidad y la resiliencia de las aplicaciones modernas. En esta sección, aprenderás cómo estructurar tu aplicación FastAPI como una colección de microservicios y cómo gestionarlos eficazmente.
+
+##### **Paso 1: Descomposición de la aplicación en microservicios**
+
+1. **Identificación de dominios y servicios**:
+
+    - **Dividir la aplicación en módulos independientes**: Analiza las funciones principales de tu aplicación y divídelas en servicios independientes, como autenticación, gestión de usuarios, inventario, etc.
+
+    ```plaintext
+    - Auth Service: Maneja la autenticación y autorización.
+    - User Service: Gestiona la información y operaciones relacionadas con usuarios.
+    - Product Service: Gestiona productos, inventario, etc.
+    - Order Service: Maneja pedidos y transacciones.
+    ```
+
+    - **Desarrollo de servicios independientes**: Cada microservicio debe tener su propio repositorio, base de datos y entorno de despliegue.
+
+    ```plaintext
+    - auth_service/
+    - user_service/
+    - product_service/
+    - order_service/
+    ```
+
+2. **Comunicación entre microservicios**:
+
+    - **API Gateway**: Implementa un API Gateway como un punto de entrada único para todas las solicitudes, que enruta las peticiones a los microservicios correspondientes.
+
+    ```python
+    from fastapi import FastAPI, HTTPException, Request
+
+    app = FastAPI()
+
+    @app.get("/{service}/{path:path}")
+    async def gateway(service: str, path: str, request: Request):
+        if service == "auth":
+            # Redirigir a auth_service
+        elif service == "user":
+            # Redirigir a user_service
+        # y así sucesivamente...
+        else:
+            raise HTTPException(status_code=404, detail="Service not found")
+    ```
+
+    - **Mensajería y colas**: Usa sistemas de mensajería como RabbitMQ o Redis para comunicar eventos entre microservicios de forma asincrónica.
+
+    ```python
+    import pika
+
+    def send_message(queue, message):
+        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        channel = connection.channel()
+        channel.queue_declare(queue=queue)
+        channel.basic_publish(exchange='', routing_key=queue, body=message)
+        connection.close()
+    ```
+
+##### **Paso 2: Gestión de microservicios**
+
+1. **Orquestación con Kubernetes**:
+
+    - **Despliegue y gestión de microservicios**: Usa Kubernetes para orquestar los microservicios, gestionando su escalabilidad, disponibilidad y actualización.
+
+    ```yaml
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: auth-service
+    spec:
+      replicas: 3
+      selector:
+        matchLabels:
+          app: auth-service
+      template:
+        metadata:
+          labels:
+            app: auth-service
+        spec:
+          containers:
+          - name: auth-service
+            image: user/auth-service:latest
+            ports:
+            - containerPort: 80
+    ```
+
+    - **Servicios de descubrimiento**: Usa Kubernetes para habilitar el descubrimiento de servicios, permitiendo que los microservicios se encuentren y comuniquen entre sí.
+
+    ```yaml
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: auth-service
+    spec:
+      selector:
+        app: auth-service
+      ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 80
+    ```
+
+2. **Gestión de la configuración y secretos**:
+
+    - **Uso de ConfigMaps y Secrets**: Almacena y gestiona la configuración de los microservicios usando ConfigMaps y Secrets en Kubernetes.
+
+    ```yaml
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: app-config
+    data:
+      DB_HOST: "database-service"
+      DB_PORT: "5432"
+    ```
+
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: db-secret
+    type: Opaque
+    data:
+      DB_PASSWORD: <base64-encoded-password>
+    ```
+
+3. **Monitorización y logging**:
+
+    - **Implementación de herramientas de monitorización**: Usa Prometheus y Grafana para monitorizar los microservicios y visualizar métricas en tiempo real.
+
+    - **Centralización de logs**: Implementa ELK Stack (Elasticsearch, Logstash, Kibana) para la centralización y análisis de logs.
+
+    ```yaml
+    apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: fluentd-config
+    data:
+      fluent.conf: |
+        <source>
+          @type tail
+          path /var/log/containers/*.log
+          pos_file /var/log/fluentd-containers.log.pos
+          tag kubernetes.*
+        </source>
+    ```
+
+##### **Paso 3: Estrategias avanzadas de microservicios**
+
+1. **Tolerancia a fallos y recuperación**:
+
+    - **Implementación de patrones de resiliencia**: Usa circuit breakers, retries, y timeouts para manejar fallos de manera eficiente.
+
+    ```python
+    import requests
+    from requests.exceptions import RequestException
+
+    def call_service(url):
+        try:
+            response = requests.get(url, timeout=2)
+            response.raise_for_status()
+            return response.json()
+        except RequestException:
+            # Implementar lógica de retry o fallback
+            pass
+    ```
+
+    - **Replicación y alta disponibilidad**: Asegura que los microservicios críticos estén replicados y disponibles en múltiples zonas.
+
+2. **Versionado de servicios**:
+
+    - **Manejo de versiones de API**: Define y gestiona versiones de los microservicios para mantener la compatibilidad hacia atrás mientras evolucionas tu API.
+
+    ```python
+    app = FastAPI()
+
+    @app.get("/v1/items/")
+    async def read_items_v1():
+        return [{"item_id": 1, "name": "Item V1"}]
+
+    @app.get("/v2/items/")
+    async def read_items_v2():
+        return [{"item_id": 1, "name": "Item V2", "price": 100}]
+    ```
+
+    - **Estrategias de despliegue con versiones**: Implementa despliegues canarios o blue-green para introducir nuevas versiones de servicios sin interrumpir el servicio actual.
+
+3. **Seguridad y autenticación entre microservicios**:
+
+    - **Autenticación mutua TLS**: Usa certificados para autenticar y asegurar la comunicación entre microservicios.
+
+    - **Implementación de OAuth2/OpenID**: Usa OAuth2 o OpenID Connect para la autenticación segura entre microservicios.
+
+    ```python
+    from fastapi import Depends, HTTPException, status
+    from fastapi.security import OAuth2PasswordBearer
+
+    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+    def authenticate_microservice(token: str = Depends(oauth2_scheme)):
+        # Verificar token y autenticación del microservicio
+        pass
+    ```
+---
+
+#### **6. Gestión de permisos y roles complejos**
+
+La gestión de permisos y roles complejos es esencial en aplicaciones que requieren control granular sobre las acciones que los usuarios pueden realizar. Implementar un sistema de roles y permisos en FastAPI te permite definir quién puede acceder a qué recursos y con qué nivel de privilegio. En esta sección, exploraremos cómo configurar y manejar roles y permisos de manera eficiente en FastAPI.
+
+##### **Paso 1: Definición de roles y permisos**
+
+1. **Estructuración de roles**:
+
+    - **Definir roles básicos**: Empieza definiendo roles básicos como `admin`, `user`, `moderator`, etc. Cada rol tiene un conjunto de permisos asociados.
+
+    ```python
+    roles_permissions = {
+        "admin": ["read", "write", "delete", "update"],
+        "user": ["read", "update"],
+        "moderator": ["read", "update", "delete"]
+    }
+    ```
+
+    - **Roles jerárquicos**: Puedes implementar roles jerárquicos donde un rol superior (como `admin`) hereda los permisos de roles inferiores.
+
+    ```python
+    def get_permissions(role):
+        if role == "admin":
+            return roles_permissions["admin"]
+        elif role == "moderator":
+            return roles_permissions["moderator"]
+        elif role == "user":
+            return roles_permissions["user"]
+        return []
+    ```
+
+2. **Asignación de roles a usuarios**:
+
+    - **Almacenar roles en la base de datos**: Los roles deben estar asociados a los usuarios en la base de datos para facilitar su gestión.
+
+    ```python
+    from sqlalchemy import Column, String, Integer, ForeignKey
+    from sqlalchemy.orm import relationship
+
+    class User(Base):
+        __tablename__ = "users"
+
+        id = Column(Integer, primary_key=True, index=True)
+        username = Column(String, unique=True, index=True)
+        role = Column(String, ForeignKey("roles.name"))
+        role_relationship = relationship("Role", back_populates="users")
+
+    class Role(Base):
+        __tablename__ = "roles"
+
+        name = Column(String, primary_key=True)
+        users = relationship("User", back_populates="role_relationship")
+    ```
+
+##### **Paso 2: Implementación de permisos en FastAPI**
+
+1. **Middleware para manejo de permisos**:
+
+    - **Creación de un middleware de permisos**: Implementa un middleware para verificar si el usuario tiene los permisos necesarios antes de permitir el acceso a un recurso.
+
+    ```python
+    from fastapi import Request, HTTPException
+    from fastapi.security import OAuth2PasswordBearer
+
+    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+    async def check_permissions(request: Request, call_next):
+        token = await oauth2_scheme(request)
+        # Recuperar el usuario a partir del token
+        user = get_user_from_token(token)
+        if not user:
+            raise HTTPException(status_code=403, detail="Invalid credentials")
+
+        # Verificar permisos del usuario
+        endpoint = request.url.path
+        method = request.method.lower()
+        if not has_permission(user.role, endpoint, method):
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+        response = await call_next(request)
+        return response
+    ```
+
+2. **Decoradores para proteger endpoints**:
+
+    - **Uso de decoradores para verificar permisos**: Usa decoradores para proteger los endpoints, asegurándote de que solo los usuarios con los permisos adecuados puedan acceder a ellos.
+
+    ```python
+    from functools import wraps
+    from fastapi import HTTPException
+
+    def require_permission(permission):
+        def decorator(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                user = get_current_user()
+                if permission not in get_permissions(user.role):
+                    raise HTTPException(status_code=403, detail="You do not have permission to perform this action")
+                return func(*args, **kwargs)
+            return wrapper
+        return decorator
+
+    @app.get("/admin/data")
+    @require_permission("read")
+    async def read_admin_data():
+        return {"data": "This is admin data"}
+    ```
+
+3. **Gestión dinámica de permisos**:
+
+    - **Asignación dinámica de permisos**: Permite la asignación dinámica de permisos a roles mediante un panel de administración o comandos específicos.
+
+    ```python
+    def assign_permission_to_role(role, permission):
+        roles_permissions[role].append(permission)
+
+    def revoke_permission_from_role(role, permission):
+        roles_permissions[role].remove(permission)
+    ```
+
+##### **Paso 3: Integración con OAuth2 y JWT**
+
+1. **Autenticación con OAuth2 y manejo de tokens**:
+
+    - **Generación de tokens con JWT**: Implementa un sistema de autenticación con JWT, donde los tokens incluyen información sobre los roles y permisos del usuario.
+
+    ```python
+    from jose import JWTError, jwt
+
+    SECRET_KEY = "your_secret_key"
+    ALGORITHM = "HS256"
+
+    def create_access_token(data: dict):
+        to_encode = data.copy()
+        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        return encoded_jwt
+
+    def verify_token(token: str):
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            return payload
+        except JWTError:
+            raise HTTPException(status_code=401, detail="Token is invalid or expired")
+    ```
+
+    - **Verificación de permisos a través del token**: Al decodificar el token, extrae los roles y permisos del usuario y verifica que sean suficientes para acceder al recurso solicitado.
+
+    ```python
+    async def get_current_user(token: str = Depends(oauth2_scheme)):
+        payload = verify_token(token)
+        user = get_user_from_payload(payload)
+        return user
+    ```
+
+2. **Autorización granular con scopes**:
+
+    - **Uso de scopes para manejar permisos específicos**: Los scopes permiten definir acciones específicas que un token puede autorizar, permitiendo un control más granular.
+
+    ```python
+    from fastapi.security import OAuth2PasswordBearer
+
+    oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", scopes={"read": "Read access", "write": "Write access"})
+
+    async def get_current_user(token: str = Depends(oauth2_scheme)):
+        payload = verify_token(token)
+        user = get_user_from_payload(payload)
+        if "read" not in payload.get("scopes", []):
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+        return user
+    ```
+
+---
+
+#### **7. Creación de plugins y extensiones**
+
+Desarrollar plugins y extensiones para FastAPI permite extender las funcionalidades de la aplicación sin modificar su núcleo, promoviendo la modularidad y la reutilización de código. En esta sección, exploraremos cómo diseñar, implementar, y gestionar plugins y extensiones que añadan capacidades adicionales a tu aplicación FastAPI.
+
+##### **Paso 1: Diseño de la arquitectura de un plugin**
+
+1. **Estructura básica de un plugin**:
+
+    - **Directorio del plugin**: Cada plugin debe tener su propio directorio, lo que facilita la organización y la integración en el proyecto principal.
+
+    ```plaintext
+    /my_fastapi_project/
+    ├── /app/
+    ├── /plugins/
+    │   ├── /my_plugin/
+    │   │   ├── __init__.py
+    │   │   ├── main.py
+    │   │   ├── routes.py
+    │   │   └── dependencies.py
+    └── main.py
+    ```
+
+    - **Definición de la clase del plugin**: Cada plugin puede ser representado por una clase que encapsula sus rutas, dependencias y otras configuraciones.
+
+    ```python
+    from fastapi import FastAPI
+
+    class MyPlugin:
+        def __init__(self, app: FastAPI):
+            self.app = app
+            self.register_routes()
+
+        def register_routes(self):
+            @self.app.get("/plugin-endpoint")
+            def plugin_endpoint():
+                return {"message": "Hello from the plugin!"}
+    ```
+
+2. **Configuración de dependencias**:
+
+    - **Registrar dependencias del plugin**: Si tu plugin requiere dependencias, debes asegurarte de registrarlas y gestionarlas de manera modular.
+
+    ```python
+    from fastapi import Depends
+
+    def my_plugin_dependency():
+        return {"dependency_data": "Important data"}
+
+    class MyPlugin:
+        def __init__(self, app: FastAPI):
+            self.app = app
+            self.register_routes()
+
+        def register_routes(self):
+            @self.app.get("/plugin-endpoint")
+            def plugin_endpoint(dep=Depends(my_plugin_dependency)):
+                return {"message": "Hello from the plugin!", "data": dep}
+    ```
+
+##### **Paso 2: Implementación de plugins en FastAPI**
+
+1. **Integración del plugin en la aplicación principal**:
+
+    - **Carga de plugins en el arranque**: Los plugins deben cargarse durante la inicialización de la aplicación principal, permitiendo que sus rutas y dependencias se integren de manera automática.
+
+    ```python
+    from fastapi import FastAPI
+    from plugins.my_plugin.main import MyPlugin
+
+    app = FastAPI()
+
+    # Cargar el plugin
+    MyPlugin(app)
+    ```
+
+2. **Uso de eventos para inicializar plugins**:
+
+    - **Inicialización en eventos de FastAPI**: Usa eventos de FastAPI para inicializar o configurar los plugins en momentos específicos, como al iniciar la aplicación.
+
+    ```python
+    @app.on_event("startup")
+    async def startup_event():
+        MyPlugin(app)
+    ```
+
+    - **Eventos para cleanup**: Implementa eventos para limpiar o liberar recursos que el plugin pueda estar utilizando.
+
+    ```python
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        # Realizar cleanup del plugin si es necesario
+        pass
+    ```
+
+##### **Paso 3: Creación de extensiones reutilizables**
+
+1. **Extensiones modulares**:
+
+    - **Diseño de extensiones reutilizables**: Las extensiones deben ser modulares y fácilmente integrables en diferentes proyectos FastAPI. Pueden incluir funcionalidades como autenticación, gestión de archivos, o manejo de cache.
+
+    ```python
+    class AuthExtension:
+        def __init__(self, app: FastAPI):
+            self.app = app
+            self.setup_auth()
+
+        def setup_auth(self):
+            @self.app.post("/auth/login")
+            def login():
+                # Lógica de autenticación
+                pass
+
+            @self.app.get("/auth/user")
+            def get_user():
+                # Lógica para obtener datos del usuario
+                pass
+    ```
+
+    - **Distribución de extensiones**: Puedes empaquetar tus extensiones y publicarlas en PyPI para que otros desarrolladores las usen.
+
+    ```plaintext
+    setup(
+        name="fastapi-auth-extension",
+        version="0.1.0",
+        description="A reusable authentication extension for FastAPI",
+        packages=find_packages(),
+        install_requires=[
+            "fastapi",
+            "pydantic",
+        ],
+    )
+    ```
+
+2. **Gestión de configuraciones y opciones**:
+
+    - **Configuración flexible**: Permite que las extensiones acepten configuraciones específicas del proyecto donde se integran, asegurando su flexibilidad.
+
+    ```python
+    class AuthExtension:
+        def __init__(self, app: FastAPI, auth_config: dict):
+            self.app = app
+            self.auth_config = auth_config
+            self.setup_auth()
+
+        def setup_auth(self):
+            # Usar self.auth_config para personalizar la autenticación
+            pass
+    ```
+
+    - **Sobrecarga de configuraciones por el usuario**: Asegúrate de que las configuraciones predeterminadas puedan ser sobreescritas por las configuraciones del proyecto.
+
+    ```python
+    app = FastAPI()
+
+    auth_config = {
+        "jwt_secret": "mysecretkey",
+        "token_expiration": 3600,
+    }
+
+    AuthExtension(app, auth_config=auth_config)
+    ```
