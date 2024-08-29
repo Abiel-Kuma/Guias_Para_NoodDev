@@ -7,9 +7,9 @@ Cada guía está diseñada para que puedas seguir mis pasos y llegar a resultado
 ## Índice
 1. [Introducción](#introducción)
 2. [Guías Disponibles](#guías-disponibles)
-    - [Guía 1: Guía Completa de Python](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/python_gu%C3%ADa)
+    - [Guía 1: Guía de Python](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/python_gu%C3%ADa)
     - [Guía 2: Guía de aprendizaje general de backend](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/backend_gu%C3%ADa)
-    - [Guía 3: Guía Completa de FastAPI](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/fastapi_gu%C3%ADa)
+    - [Guía 3: Guía de FastAPI](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/fastapi_gu%C3%ADa)
 4. [Contribuir](#contribuir)
 
 ## Contribuir
