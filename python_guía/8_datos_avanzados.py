@@ -66,7 +66,3 @@ print(cuadrados)
 
 # Salida:
 # (0, 1, 4, 9, 16, 25, 36, 49, 64, 81)
-
-# Conclusión
-# Las comprensiones de listas, diccionarios y conjuntos son herramientas poderosas en Python que permiten escribir código más compacto y eficiente.
-# Estas técnicas son especialmente útiles para operaciones que involucran la transformación y filtrado de datos dentro de colecciones.
