@@ -21,3 +21,12 @@ def palin(word):
 
 word = input("Introduce una palabra políndroma: ")
 palin(word)
+
+# desafio N3
+word = "bienvenidos a la fabrica de unicornios"
+contador = 0
+for i in word:
+    if i == "a" or i == "e" or i == "i" or i == "o" or i == "u":
+        contador += 1
+
+print(f"total de vocales: {contador}")
