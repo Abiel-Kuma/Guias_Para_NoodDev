@@ -40,6 +40,9 @@ FastAPI no solo es fácil de usar sino también extremadamente rápido, aprovech
 6. [Gestión de permisos y roles complejos](#6-gestión-de-permisos-y-roles-complejos)
 7. [Creación de plugins y extensiones](#7-creación-de-plugins-y-extensiones)
 
+##### **Parte 4: Estructura de Carpetas**
+1. [Estructura de carpetas para una Api usando FastApi](#estructura-de-carpetas-para-una-api-en-fastapi)
+
 ---
 ### Parte 1: Principiante
 
@@ -3212,3 +3215,65 @@ Desarrollar plugins y extensiones para FastAPI permite extender las funcionalida
 
     AuthExtension(app, auth_config=auth_config)
     ```
+
+### **Estructura de Carpetas para una API en FastApi**
+
+Aquí tienes una guía para estructurar las carpetas de una API basada en una arquitectura modular y escalable. Esta estructura es adecuada para APIs pequeñas y medianas.
+
+![EstructuraDeUnApi](/img/EstructuraFastApi.svg)
+
+##### Estructura de Carpetas para una API
+
+```
+/api-project
+│
+├── /app
+│   ├── /models            # Definición de modelos (p. ej., SQLAlchemy o Mongoose)
+│   ├── /schemas           # Validación de datos y serialización (p. ej., Pydantic o Joi)
+│   ├── /services          # Lógica de negocio y servicios (interacciones con los modelos)
+│   ├── /routes            # Endpoints de la API
+│   ├── /controllers       # Lógica de controladores, maneja las rutas y solicitudes
+│   ├── /middlewares       # Middlewares personalizados (autenticación, logging, CORS)
+│   ├── /utils             # Funciones auxiliares (helpers, constantes, formateadores)
+│   ├── /tests             # Pruebas unitarias y de integración
+│   ├── /static            # Archivos estáticos (imágenes, CSS, JS)
+│   └── __init__.py        # Inicialización de la aplicación
+│
+├── /config                # Configuraciones (base de datos, entorno, API keys)
+│   ├── settings.py        # Configuración de variables de entorno
+│   ├── db.py              # Configuración de la base de datos
+│   └── logging.py         # Configuración del logging
+│
+├── /migrations            # Scripts de migración de la base de datos (Alembic, LeamBic)
+│
+├── /docs                  # Documentación de la API (Swagger, OpenAPI)
+│
+├── .env                   # Variables de entorno (NO subir a producción)
+├── .gitignore             # Archivos y carpetas a ignorar en Git
+├── README.md              # Documentación inicial del proyecto
+└── main.py                # Archivo principal que inicia la aplicación
+```
+##### Explicación de las carpetas
+
+1. **app**: Directorio principal que contiene la lógica de la aplicación.
+   - **models**: Define los modelos de la base de datos.
+   - **schemas**: Maneja la validación y serialización de datos de entrada y salida.
+   - **services**: Lógica de negocio que interactúa con los modelos.
+   - **routes**: Definición de las rutas o endpoints de la API.
+   - **controllers**: Maneja la lógica de cada ruta y delega tareas a servicios o modelos.
+   - **middlewares**: Funciones que se ejecutan antes o después de las solicitudes (autenticación, CORS, etc.).
+   - **utils**: Funciones auxiliares que se utilizan en distintas partes de la aplicación.
+   - **tests**: Pruebas para garantizar que la API funciona como se espera.
+
+2. **config**: Archivo para las configuraciones globales del proyecto.
+   - **settings.py**: Aquí irían las variables de entorno, configuraciones de la API, etc.
+   - **db.py**: Configuración de la conexión a la base de datos.
+   - **logging.py**: Configuración de los logs para seguimiento y depuración.
+
+3. **migrations**: Carpeta donde se colocan las migraciones de base de datos (Alembic, LeamBic).
+
+4. **docs**: Espacio para la documentación de la API, como el archivo Swagger u OpenAPI.
+
+5. **.env**: Archivo de variables de entorno (clave API, conexión a la DB).
+
+6. **main.py**: El punto de entrada de la aplicación. Aquí se configuran los servidores, middlewares y las rutas.
