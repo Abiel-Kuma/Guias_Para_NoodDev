@@ -47,7 +47,7 @@ FastAPI no solo es fácil de usar sino también extremadamente rápido, aprovech
 ### Parte 1: Principiante
 
 #### **1. Introducción a FastAPI**
-
+![FastApi](https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png)
 FastAPI es un framework moderno y de alto rendimiento para construir APIs en Python, creado por Sebastián Ramírez. Se caracteriza por ser fácil de usar y producir aplicaciones rápidas y eficientes, apoyándose en la tipificación estática de Python para generar documentación y validaciones automáticas.
 
 ##### **¿Por qué elegir FastAPI?**
