@@ -4,12 +4,15 @@ Este repositorio está dedicado a recopilar y compartir mi aprendizaje en el des
 
 Cada guía está diseñada para que puedas seguir mis pasos y llegar a resultados similares, independientemente de tu nivel de experiencia.
 
+Aclaro que estas guias estan hechas a partir de experiencia y IA para poder expresar mis ideas mas claras, asiendolas entendibles para todo alquel que quiera aprender.
+
 ## Índice
 1. [Introducción](#introducción)
 2. [Guías Disponibles](#guías-disponibles)
-    - [Guía 1: Guía de Python](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/python_gu%C3%ADa)
-    - [Guía 2: Guía de aprendizaje general de backend](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/backend_gu%C3%ADa)
-    - [Guía 3: Guía de FastAPI](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/fastapi_gu%C3%ADa)
+    - [Guía de Python](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/python_gu%C3%ADa)
+    - [Guía de aprendizaje general de backend](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/backend_gu%C3%ADa)
+    - [Guía de FastAPI](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/fastapi_gu%C3%ADa)
+    - [Guía de SQLAlchemy]()
 4. [Contribuir](#contribuir)
 
 ## Contribuir
