@@ -1,58 +1,59 @@
 ## **Guía de SQLAlchemy en Español: ORM y Uso de SQLAlchemy**
 
 ### **Índice:**
-1. **Introducción a los ORM**
+
+1. [Introducción a los ORM](#1-introducción-a-los-orm)
    - ¿Qué es un ORM?
    - Ventajas y desventajas de usar un ORM
    - Comparación rápida entre diferentes ORM (SQLAlchemy, Django ORM, etc.)
 
-2. **Introducción a SQLAlchemy**
+2. [Introducción a SQLAlchemy](#2-introducción-a-sqlalchemy)
    - ¿Qué es SQLAlchemy?
    - Estructura de SQLAlchemy: Core vs. ORM
    - Instalación de SQLAlchemy
 
-3. **Configuración Inicial y Conexión a una Base de Datos**
+3. [Configuración Inicial y Conexión a una Base de Datos](#3-configuración-inicial-y-conexión-a-una-base-de-datos)
    - Crear un motor de base de datos (`engine`)
    - Conexión a bases de datos comunes (SQLite, PostgreSQL, MySQL)
 
-4. **Modelos y Tablas**
+4. [Modelos y Tablas](#4-modelos-y-tablas)
    - Definición de clases y modelos ORM
    - Mapeo de clases a tablas
    - Tipos de columnas y sus atributos
 
-5. **CRUD Básico con SQLAlchemy**
+5. [CRUD Básico con SQLAlchemy](#5-crud-básico-con-sqlalchemy)
    - Crear registros (`CREATE`)
    - Leer registros (`READ`)
    - Actualizar registros (`UPDATE`)
    - Eliminar registros (`DELETE`)
    - Manejo de sesiones (`session`)
 
-6. **Consultas Avanzadas con SQLAlchemy**
+6. [Consultas Avanzadas con SQLAlchemy](#6-consultas-avanzadas-con-sqlalchemy)
    - Uso de `select()` para consultas avanzadas
    - Filtrado y ordenamiento
    - Joins y relaciones entre tablas
    - Agregaciones y funciones SQL
 
-7. **Relaciones entre Modelos**
+7. [Relaciones entre Modelos](#7-relaciones-entre-modelos)
    - One-to-Many
    - Many-to-Many
    - One-to-One
    - Definir y manejar relaciones en SQLAlchemy
 
-8. **Transacciones y Manejo de Sesiones**
+8. [Transacciones y Manejo de Sesiones](#8-transacciones-y-manejo-de-sesiones)
    - Contexto de sesión (`Session` y `Session.begin()`)
    - Manejo de transacciones y errores
    - Sesiones asincrónicas (`AsyncSession`)
 
-9. **Migraciones de Esquema**
+9. [Migraciones de Esquema](#9-migraciones-de-esquema)
    - Introducción a las migraciones
    - Uso de Alembic para gestionar cambios en la base de datos
 
-10. **Uso Asincrónico de SQLAlchemy**
+10. [Uso Asincrónico de SQLAlchemy](#10-uso-asincrónico-de-sqlalchemy)
     - Asincronía con `asyncio`
     - Ejecución de consultas asincrónicas
 
-11. **Buenas Prácticas y Optimización**
+11. [Buenas Prácticas y Optimización](#11-buenas-prácticas-y-optimización)
     - Optimización de consultas
     - Gestión eficiente del pool de conexiones
     - Estrategias de caché
@@ -408,814 +409,1437 @@ class User(Base):
 Al agregar anotaciones de tipo, se mejora la legibilidad y ayuda a herramientas de análisis estático a verificar la corrección del código.
 
 ---
+### **5. CRUD Básico con SQLAlchemy**
 
-### **Resumen**
-
-1. Los **modelos** en SQLAlchemy se definen como clases que heredan de `DeclarativeBase`.
-2. Las **relaciones** entre tablas se definen usando `ForeignKey` y `relationship()`.
-3. SQLAlchemy 2.0 soporta completamente el uso de **anotaciones de tipo** para mejorar la claridad del código.
-4. Para crear las tablas en la base de datos, utilizamos `Base.metadata.create_all()`.
+El **CRUD** (Crear, Leer, Actualizar, Eliminar) es una de las operaciones fundamentales que se realizan al trabajar con bases de datos. SQLAlchemy ORM permite realizar estas operaciones de manera intuitiva y eficiente. En este punto, exploraremos cómo ejecutar las operaciones básicas de CRUD utilizando SQLAlchemy, además de cómo manejar las **sesiones** y confirmar los cambios en la base de datos.
 
 ---
 
-## **5. Operaciones CRUD (Crear, Leer, Actualizar, Eliminar)**
+### **1. Crear Registros (`CREATE`)**
 
-### **1. Crear (Create)**
+Para crear nuevos registros en la base de datos, SQLAlchemy permite añadir instancias de los modelos ORM a una sesión y luego confirmar los cambios con `session.commit()`.
 
-Para **crear** nuevos registros en la base de datos, primero se crean instancias de los modelos correspondientes y luego se añaden a la sesión.
+#### **Ejemplo: Crear un nuevo registro**
 
-#### **Ejemplo: Crear un nuevo usuario**
+Supongamos que tenemos el siguiente modelo de una tabla `Usuario`:
 
 ```python
-# Crear una instancia del modelo User
-nuevo_usuario = User(username="abiel", email="abiel@example.com")
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import declarative_base
 
-# Añadir el usuario a la sesión
-session.add(nuevo_usuario)
+Base = declarative_base()
 
-# Confirmar la transacción
-session.commit()
+class Usuario(Base):
+    __tablename__ = 'usuarios'
+    id = Column(Integer, primary_key=True)
+    nombre = Column(String)
+    correo = Column(String)
 ```
 
-- `session.add()` añade el objeto a la sesión.
-- `session.commit()` guarda los cambios en la base de datos.
-
-### **2. Leer (Read)**
-
-Para **leer** o consultar datos de la base de datos, puedes utilizar la función `session.query()` o la nueva API de **SQLAlchemy 2.0**, que recomienda el uso de **select()**.
-
-#### **Ejemplo: Leer todos los usuarios**
+Para añadir un nuevo usuario a la tabla:
 
 ```python
-from sqlalchemy import select
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+
+# Crear el motor de base de datos y la sesión
+engine = create_engine('sqlite:///mi_base_de_datos.db')
+Session = sessionmaker(bind=engine)
+session = Session()
+
+# Crear un nuevo registro
+nuevo_usuario = Usuario(nombre="Ana", correo="ana@example.com")
+
+# Añadir el nuevo usuario a la sesión
+session.add(nuevo_usuario)
+
+# Confirmar (commit) los cambios
+session.commit()
+
+# Cerrar la sesión
+session.close()
+```
+
+#### **Explicación:**
+
+1. **`session.add()`**: Añade el nuevo objeto `Usuario` a la sesión. Este paso no guarda el registro inmediatamente en la base de datos.
+2. **`session.commit()`**: Confirma la transacción, lo que guarda todos los cambios realizados en la sesión en la base de datos.
+3. **`session.close()`**: Cierra la sesión una vez que se ha completado la transacción.
+
+---
+
+### **2. Leer Registros (`READ`)**
+
+SQLAlchemy permite realizar consultas para leer datos de la base de datos utilizando la sesión y el método `query()`. También puedes utilizar métodos como `filter()`, `filter_by()`, y `all()` para personalizar las consultas.
+
+#### **Ejemplo: Leer todos los registros**
+
+```python
+# Crear una sesión
+session = Session()
 
 # Consultar todos los usuarios
-stmt = select(User)
-usuarios = session.execute(stmt).scalars().all()
+usuarios = session.query(Usuario).all()
 
+# Mostrar los usuarios
 for usuario in usuarios:
-    print(usuario)
+    print(usuario.nombre, usuario.correo)
+
+# Cerrar la sesión
+session.close()
 ```
 
-En este ejemplo:
-- Se usa `select(User)` para obtener todos los usuarios.
-- `session.execute(stmt)` ejecuta la consulta, y `scalars()` extrae los resultados como instancias de la clase `User`.
-- `all()` devuelve una lista con todos los usuarios.
+#### **Explicación:**
 
-#### **Filtrar resultados**
+- **`session.query(Usuario).all()`**: Realiza una consulta para obtener todos los registros de la tabla `usuarios` y devuelve una lista de objetos `Usuario`.
 
-Puedes aplicar filtros a tus consultas usando `where()` para obtener registros específicos.
+#### **Ejemplo: Filtrar registros por condiciones**
+
+Si deseas filtrar los resultados, puedes usar `filter()` o `filter_by()`.
 
 ```python
-stmt = select(User).where(User.username == "abiel")
-usuario = session.execute(stmt).scalar_one_or_none()
+# Filtrar usuarios por correo
+usuario = session.query(Usuario).filter_by(correo="ana@example.com").first()
 
-if usuario:
-    print(f"Usuario encontrado: {usuario.username}, {usuario.email}")
-else:
-    print("No se encontró ningún usuario.")
+print(f"Usuario encontrado: {usuario.nombre}, {usuario.correo}")
 ```
 
-En este caso, `where()` filtra la consulta para obtener un usuario específico por su nombre de usuario. Usamos `scalar_one_or_none()` para obtener el primer resultado o `None` si no existe.
+- **`filter_by()`**: Filtra los registros por coincidencia exacta con los valores de las columnas.
+- **`first()`**: Devuelve el primer resultado que coincide con el filtro.
 
-### **3. Actualizar (Update)**
+#### **Otros métodos útiles para consultas**:
 
-Para **actualizar** registros, primero debes consultar el registro que deseas modificar, hacer los cambios y luego confirmar los cambios con `session.commit()`.
-
-#### **Ejemplo: Actualizar el correo electrónico de un usuario**
-
-```python
-# Consultar el usuario que se desea actualizar
-stmt = select(User).where(User.username == "abiel")
-usuario = session.execute(stmt).scalar_one_or_none()
-
-if usuario:
-    usuario.email = "nuevo_correo@example.com"  # Actualizar el campo email
-    session.commit()  # Guardar los cambios
-    print("Correo actualizado con éxito.")
-else:
-    print("No se encontró el usuario.")
-```
-
-En este ejemplo:
-- Se busca el usuario con el nombre "abiel".
-- Se actualiza el campo `email`.
-- Se guarda la transacción con `session.commit()`.
-
-### **4. Eliminar (Delete)**
-
-Para **eliminar** registros, primero debes consultar el objeto a eliminar, usar `session.delete()` y luego confirmar los cambios con `session.commit()`.
-
-#### **Ejemplo: Eliminar un usuario**
-
-```python
-# Consultar el usuario que se desea eliminar
-stmt = select(User).where(User.username == "abiel")
-usuario = session.execute(stmt).scalar_one_or_none()
-
-if usuario:
-    session.delete(usuario)  # Eliminar el usuario
-    session.commit()  # Guardar los cambios
-    print("Usuario eliminado con éxito.")
-else:
-    print("No se encontró el usuario.")
-```
-
-En este ejemplo:
-- Se consulta el usuario que se desea eliminar.
-- `session.delete()` elimina el objeto de la sesión.
-- `session.commit()` guarda los cambios en la base de datos, eliminando el registro.
+- **`first()`**: Devuelve el primer registro que coincide con la consulta.
+- **`all()`**: Devuelve todos los registros que coinciden.
+- **`count()`**: Cuenta el número de registros que coinciden.
+- **`filter()`**: Permite crear filtros más complejos (por ejemplo, con operadores).
 
 ---
 
-### **Sesiones y Transacciones en SQLAlchemy 2.0**
+### **3. Actualizar Registros (`UPDATE`)**
 
-En SQLAlchemy 2.0, las sesiones son claves para interactuar con la base de datos, y es importante manejarlas adecuadamente.
+Actualizar un registro en SQLAlchemy es sencillo. Primero, obtienes el objeto que deseas actualizar mediante una consulta, luego modificas sus atributos y, finalmente, confirmas los cambios con `session.commit()`.
 
-#### **Context Manager con sesiones**
-
-SQLAlchemy 2.0 recomienda el uso de **context managers** (`with`) para asegurarse de que las sesiones se cierren correctamente después de cada operación, especialmente en aplicaciones asíncronas.
+#### **Ejemplo: Actualizar un registro existente**
 
 ```python
-from sqlalchemy.orm import sessionmaker
+# Obtener un usuario por correo
+usuario = session.query(Usuario).filter_by(correo="ana@example.com").first()
 
-Session = sessionmaker(bind=engine)
+# Modificar el nombre del usuario
+usuario.nombre = "Ana María"
 
-# Usando un context manager para manejar la sesión
-with Session() as session:
-    nuevo_usuario = User(username="abiel", email="abiel@example.com")
+# Confirmar los cambios en la base de datos
+session.commit()
+```
+
+En este ejemplo, se obtiene el registro del usuario cuyo correo es "ana@example.com", se modifica su nombre, y luego se confirma el cambio con `commit()`.
+
+---
+
+### **4. Eliminar Registros (`DELETE`)**
+
+Para eliminar un registro de la base de datos, primero debes obtener el objeto que deseas eliminar y luego pasarlo al método `session.delete()`, seguido de `commit()` para confirmar los cambios.
+
+#### **Ejemplo: Eliminar un registro**
+
+```python
+# Obtener un usuario por correo
+usuario = session.query(Usuario).filter_by(correo="ana@example.com").first()
+
+# Eliminar el usuario
+session.delete(usuario)
+
+# Confirmar la eliminación
+session.commit()
+```
+
+#### **Explicación:**
+
+- **`session.delete()`**: Marca el objeto como eliminado en la sesión.
+- **`session.commit()`**: Elimina permanentemente el registro de la base de datos.
+
+---
+
+### **5. Manejo de Sesiones (`session`)**
+
+La sesión en SQLAlchemy es el contexto en el que todas las operaciones de consulta, actualización, inserción y eliminación tienen lugar. La sesión gestiona el ciclo de vida de las transacciones y asegura que los cambios se confirmen o se deshagan correctamente.
+
+#### **Crear una sesión**:
+
+Ya vimos cómo crear una sesión usando `sessionmaker`. Cada operación de CRUD debe realizarse dentro de una sesión. Por lo general, se sigue este patrón:
+
+1. Crear la sesión.
+2. Realizar las operaciones deseadas (añadir, leer, actualizar, eliminar).
+3. Confirmar los cambios con `commit()`.
+4. Cerrar la sesión.
+
+#### **Ejemplo de ciclo de vida de una sesión**:
+
+```python
+# Crear la sesión
+session = Session()
+
+try:
+    # Realizar operaciones
+    nuevo_usuario = Usuario(nombre="Carlos", correo="carlos@example.com")
     session.add(nuevo_usuario)
-    session.commit()  # Guardar los cambios dentro del context manager
+
+    # Confirmar la transacción
+    session.commit()
+
+except:
+    # Si ocurre un error, deshacer la transacción
+    session.rollback()
+    raise
+
+finally:
+    # Cerrar la sesión
+    session.close()
 ```
 
-- El **context manager** asegura que la sesión se cierre al salir del bloque `with`, independientemente de si ocurre una excepción.
+#### **Explicación**:
 
-### **Operaciones CRUD con Async**
+- **`session.rollback()`**: Si ocurre algún error durante las operaciones de la sesión, `rollback()` deshace cualquier cambio no confirmado.
+- **`session.commit()`**: Confirma los cambios realizados en la sesión, guardándolos en la base de datos.
+- **`session.close()`**: Es importante cerrar la sesión para liberar los recursos.
 
-SQLAlchemy 2.0 también soporta operaciones **asíncronas**. Aquí tienes un ejemplo básico de cómo manejar una operación CRUD de forma asíncrona:
+---
+### **6. Consultas Avanzadas con SQLAlchemy**
 
-#### **Ejemplo de operación asíncrona: Crear un usuario**
+SQLAlchemy ofrece una gran flexibilidad para realizar consultas avanzadas a la base de datos. No solo permite realizar consultas sencillas, sino que también facilita operaciones más complejas, como filtrado, ordenamiento, agregaciones y relaciones entre tablas.
 
-```python
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.future import select
-from sqlalchemy.orm import sessionmaker
-
-# Crear el motor asíncrono
-async_engine = create_async_engine("sqlite+aiosqlite:///mi_base_de_datos.db", echo=True)
-
-# Crear una sesión asíncrona
-async_session = sessionmaker(bind=async_engine, class_=AsyncSession, expire_on_commit=False)
-
-async def crear_usuario_async():
-    async with async_session() as session:
-        nuevo_usuario = User(username="abiel_async", email="abiel_async@example.com")
-        session.add(nuevo_usuario)
-        await session.commit()  # Usar await con sesiones asíncronas
-
-# Ejecutar la función asíncrona
-import asyncio
-asyncio.run(crear_usuario_async())
-```
-
-Aquí, en lugar de usar el motor síncrono, se utiliza `create_async_engine()` con el driver `aiosqlite`. Las sesiones asíncronas requieren `await` para las operaciones de commit, consulta, etc.
+En este punto, exploraremos cómo utilizar las consultas avanzadas con SQLAlchemy utilizando el método **`select()`**, además de cubrir otras características como filtrado, ordenamiento, joins y agregaciones.
 
 ---
 
-### **Resumen**
+### **1. Uso de `select()` para Consultas Avanzadas**
 
-1. **Crear**: Añade instancias de modelos a la base de datos usando `session.add()` y `session.commit()`.
-2. **Leer**: Utiliza `select()` para consultar datos, y `session.execute()` para ejecutar las consultas.
-3. **Actualizar**: Modifica objetos consultados y guarda los cambios con `session.commit()`.
-4. **Eliminar**: Elimina objetos usando `session.delete()` y confirma la transacción con `session.commit()`.
-5. **Sesiones**: Se recomienda usar context managers para manejar correctamente las sesiones.
-6. **Operaciones asíncronas**: SQLAlchemy 2.0 soporta CRUD de forma asíncrona mediante `AsyncSession`.
+El método `select()` en SQLAlchemy 2.0 permite crear consultas SQL de manera flexible. Es uno de los principales métodos para realizar consultas complejas en la base de datos.
 
----
-¡Perfecto! Vamos entonces con el **punto 6: Manejo de Relaciones y Asociaciones Complejas** en SQLAlchemy 2.0.
-
-Las relaciones entre tablas son fundamentales en cualquier base de datos relacional, y SQLAlchemy proporciona herramientas poderosas para definir y gestionar estas relaciones de manera intuitiva utilizando su ORM.
-
----
-
-## **6. Manejo de Relaciones y Asociaciones Complejas**
-
-SQLAlchemy soporta varios tipos de relaciones entre tablas:
-1. **Uno a muchos (One-to-Many)**
-2. **Muchos a uno (Many-to-One)**
-3. **Muchos a muchos (Many-to-Many)**
-4. **Uno a uno (One-to-One)**
-
-Estas relaciones se definen mediante las clases de los modelos usando **Foreign Keys (Claves foráneas)** y las funciones `relationship()` y `backref()`.
-
-### **1. Relación Uno a Muchos (One-to-Many)**
-
-Una relación **uno a muchos** es cuando un registro de una tabla está relacionado con varios registros de otra tabla. Por ejemplo, un usuario puede tener muchos artículos, pero cada artículo pertenece a un solo usuario.
-
-#### **Ejemplo: Definir una relación Uno a Muchos entre `User` y `Article`**
-
-```python
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.orm import relationship
-
-# Definir el modelo Usuario
-class User(Base):
-    __tablename__ = 'users'
-    
-    id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True, nullable=False)
-    
-    # Relación uno a muchos
-    articles = relationship("Article", back_populates="author")
-
-# Definir el modelo Artículo
-class Article(Base):
-    __tablename__ = 'articles'
-    
-    id = Column(Integer, primary_key=True)
-    title = Column(String, nullable=False)
-    content = Column(String)
-    
-    # Llave foránea que apunta a 'users.id'
-    user_id = Column(Integer, ForeignKey('users.id'))
-    
-    # Relación muchos a uno
-    author = relationship("User", back_populates="articles")
-```
-
-- **`ForeignKey`**: La columna `user_id` en la tabla `Article` hace referencia a `users.id`, estableciendo la relación.
-- **`relationship()`**: Se utiliza para definir cómo se relacionan los modelos en el nivel del ORM.
-  - `back_populates`: Se usa para hacer referencia a la misma relación desde ambos lados. En `User`, se define `articles`, y en `Article`, se define `author`.
-
-#### **Crear y consultar datos con la relación Uno a Muchos**
-
-```python
-# Crear un nuevo usuario
-nuevo_usuario = User(username="abiel")
-
-# Crear artículos relacionados con el usuario
-articulo1 = Article(title="Artículo 1", content="Contenido del artículo 1", author=nuevo_usuario)
-articulo2 = Article(title="Artículo 2", content="Contenido del artículo 2", author=nuevo_usuario)
-
-# Añadir el usuario y los artículos a la sesión
-session.add(nuevo_usuario)
-session.add_all([articulo1, articulo2])
-
-# Confirmar los cambios
-session.commit()
-```
-
-### **2. Relación Muchos a Muchos (Many-to-Many)**
-
-Una relación **muchos a muchos** ocurre cuando múltiples registros de una tabla están relacionados con múltiples registros de otra tabla. Por ejemplo, los artículos pueden tener múltiples etiquetas, y las etiquetas pueden estar asociadas con múltiples artículos.
-
-Para implementar esta relación, se usa una **tabla intermedia** que contiene las claves foráneas de ambas tablas.
-
-#### **Ejemplo: Relación Muchos a Muchos entre `Article` y `Tag`**
-
-```python
-from sqlalchemy import Table, Column, ForeignKey
-
-# Tabla intermedia para la relación muchos a muchos
-article_tag = Table('article_tag', Base.metadata,
-    Column('article_id', ForeignKey('articles.id'), primary_key=True),
-    Column('tag_id', ForeignKey('tags.id'), primary_key=True)
-)
-
-# Modelo Artículo
-class Article(Base):
-    __tablename__ = 'articles'
-    
-    id = Column(Integer, primary_key=True)
-    title = Column(String, nullable=False)
-    
-    # Relación muchos a muchos con tags
-    tags = relationship("Tag", secondary=article_tag, back_populates="articles")
-
-# Modelo Etiqueta (Tag)
-class Tag(Base):
-    __tablename__ = 'tags'
-    
-    id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    
-    # Relación muchos a muchos con artículos
-    articles = relationship("Article", secondary=article_tag, back_populates="tags")
-```
-
-- **`secondary=article_tag`**: Especifica que la relación se establece a través de la tabla intermedia `article_tag`.
-- **`back_populates`**: Igual que en las relaciones uno a muchos, se usa para referenciar la relación desde ambos lados.
-
-#### **Crear y consultar datos con la relación Muchos a Muchos**
-
-```python
-# Crear etiquetas
-tag_python = Tag(name="Python")
-tag_sqlalchemy = Tag(name="SQLAlchemy")
-
-# Crear un artículo y asociarlo con etiquetas
-nuevo_articulo = Article(title="Usando SQLAlchemy", tags=[tag_python, tag_sqlalchemy])
-
-# Añadir todo a la sesión
-session.add(nuevo_articulo)
-session.commit()
-```
-
-### **3. Relación Uno a Uno (One-to-One)**
-
-Una relación **uno a uno** es cuando un registro en una tabla está relacionado con un solo registro en otra tabla. Para establecer esta relación, simplemente se define una relación uno a muchos con una restricción de unicidad.
-
-#### **Ejemplo: Relación Uno a Uno entre `User` y `Profile`**
-
-```python
-from sqlalchemy import UniqueConstraint
-
-# Modelo Perfil
-class Profile(Base):
-    __tablename__ = 'profiles'
-    
-    id = Column(Integer, primary_key=True)
-    bio = Column(String)
-    user_id = Column(Integer, ForeignKey('users.id'), unique=True)
-    
-    # Relación uno a uno con User
-    user = relationship("User", back_populates="profile", uselist=False)
-
-# Agregar la relación al modelo User
-class User(Base):
-    __tablename__ = 'users'
-    
-    id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True, nullable=False)
-    
-    # Relación uno a uno con Profile
-    profile = relationship("Profile", back_populates="user", uselist=False)
-```
-
-- **`uselist=False`**: Indica que esta es una relación uno a uno.
-- La clave foránea `user_id` en el modelo `Profile` es única, asegurando que cada usuario tenga solo un perfil.
-
-#### **Crear y consultar datos con la relación Uno a Uno**
-
-```python
-# Crear un usuario y su perfil
-nuevo_usuario = User(username="abiel")
-nuevo_perfil = Profile(bio="Desarrollador de software", user=nuevo_usuario)
-
-# Añadir a la sesión
-session.add(nuevo_usuario)
-session.commit()
-```
-
-### **4. Consultas en Relaciones**
-
-SQLAlchemy permite realizar consultas complejas que incluyen las relaciones definidas entre los modelos.
-
-#### **Ejemplo: Consultar un usuario con sus artículos**
-
-```python
-stmt = select(User).where(User.username == "abiel").options(selectinload(User.articles))
-usuario = session.execute(stmt).scalar_one_or_none()
-
-if usuario:
-    for articulo in usuario.articles:
-        print(f"Título: {articulo.title}")
-```
-
-- **`selectinload()`**: Se utiliza para cargar las relaciones de forma eficiente, evitando consultas adicionales innecesarias.
-
-#### **Ejemplo: Consultar artículos con etiquetas**
-
-```python
-stmt = select(Article).options(selectinload(Article.tags))
-articulos = session.execute(stmt).scalars().all()
-
-for articulo in articulos:
-    print(f"Artículo: {articulo.title}")
-    for tag in articulo.tags:
-        print(f"Etiqueta: {tag.name}")
-```
-
-### **5. Relaciones con Carga Diferida (Lazy Loading)**
-
-SQLAlchemy permite especificar cómo se cargan las relaciones cuando se consultan registros:
-- **Lazy**: Las relaciones se cargan al acceder a ellas.
-- **Eager**: Las relaciones se cargan inmediatamente cuando se consulta el objeto principal.
-- **No load**: Las relaciones no se cargan, y si se intenta acceder a ellas, se lanzará un error.
-
-Ejemplo de carga perezosa (lazy):
-
-```python
-# Definir una relación con carga perezosa
-articles = relationship("Article", lazy="select")
-```
-
----
-
-### **Resumen**
-
-1. **Relación Uno a Muchos**: Usa `relationship()` y `ForeignKey()` para modelar relaciones simples donde un registro tiene varios relacionados.
-2. **Relación Muchos a Muchos**: Define una tabla intermedia con `Table()` y usa `secondary` para establecer relaciones de muchos a muchos.
-3. **Relación Uno a Uno**: Usa `uselist=False` y una clave foránea única para relaciones uno a uno.
-4. **Consultas en Relaciones**: Usa métodos como `selectinload()` para consultas eficientes que involucren relaciones.
-5. **Carga Diferida**: Controla cómo se cargan las relaciones usando las opciones `lazy`, `eager`, o `no load`.
-
----
-
-## **7. Consultas Básicas y Avanzadas con SQLAlchemy**
-
-### **1. Consultas Básicas utilizando SQLAlchemy ORM**
-
-SQLAlchemy ORM proporciona una interfaz de alto nivel para realizar consultas sobre los modelos definidos, utilizando el patrón de acceso a objetos.
-
-#### **Ejemplo: Seleccionar Todos los Registros de una Tabla**
-
-Usando `session.query()` o el nuevo método `select()` (introducido en SQLAlchemy 1.4 y mejorado en 2.0):
+#### **Ejemplo: Seleccionar todos los registros de una tabla**
 
 ```python
 from sqlalchemy import select
 
-# Seleccionar todos los usuarios
-stmt = select(User)
-usuarios = session.execute(stmt).scalars().all()
+# Crear una consulta select para obtener todos los usuarios
+stmt = select(Usuario)
 
-for usuario in usuarios:
-    print(usuario.username)
+# Ejecutar la consulta
+result = session.execute(stmt)
+
+# Mostrar los resultados
+for row in result:
+    print(row.Usuario.nombre, row.Usuario.correo)
 ```
 
-- **`select()`**: Permite generar consultas SQL simples de manera declarativa.
-- **`scalars()`**: Se utiliza para extraer solo las columnas seleccionadas en lugar de objetos completos.
-
-#### **Ejemplo: Filtrar Registros con `where()`**
-
-Para realizar consultas con condiciones, se puede usar `where()`.
-
-```python
-# Seleccionar usuarios cuyo nombre sea 'Abiel'
-stmt = select(User).where(User.username == "Abiel")
-usuario = session.execute(stmt).scalar_one_or_none()
-
-if usuario:
-    print(usuario.username)
-```
-
-- **`scalar_one_or_none()`**: Retorna un único resultado o `None` si no hay coincidencias.
-
-#### **Ejemplo: Ordenar Resultados con `order_by()`**
-
-```python
-# Seleccionar todos los artículos y ordenarlos por título
-stmt = select(Article).order_by(Article.title)
-articulos = session.execute(stmt).scalars().all()
-
-for articulo in articulos:
-    print(articulo.title)
-```
-
-#### **Ejemplo: Limitar el Número de Resultados con `limit()`**
-
-```python
-# Obtener los primeros 5 artículos
-stmt = select(Article).limit(5)
-articulos = session.execute(stmt).scalars().all()
-
-for articulo in articulos:
-    print(articulo.title)
-```
+#### **Explicación:**
+- **`select()`**: Crea una consulta para seleccionar todos los registros de la tabla `Usuario`.
+- **`session.execute()`**: Ejecuta la consulta.
+- **Recorrido de los resultados**: Los resultados se recorren como filas (`row`), y cada fila contiene el objeto `Usuario`.
 
 ---
 
-### **2. Consultas con Relaciones usando `join()`**
+### **2. Filtrado de Registros**
 
-SQLAlchemy permite realizar consultas que involucran relaciones entre tablas mediante el uso de `join()`. Esto es útil cuando necesitas combinar datos de varias tablas relacionadas.
+SQLAlchemy permite filtrar registros usando los métodos `filter()` y `filter_by()` para especificar condiciones de búsqueda. Estas condiciones pueden incluir comparaciones, operadores lógicos y funciones.
 
-#### **Ejemplo: Consultar Usuarios con sus Artículos**
+#### **Filtrar con `filter_by()` (búsqueda simple)**
 
-Para consultar datos de dos tablas relacionadas, se usa `join()` junto con `select()`.
-
-```python
-# Unir usuarios y sus artículos
-stmt = select(User.username, Article.title).join(Article, User.id == Article.user_id)
-resultados = session.execute(stmt).all()
-
-for username, title in resultados:
-    print(f"Usuario: {username}, Artículo: {title}")
-```
-
-- **`join()`**: Permite unir dos tablas en base a una condición (en este caso, la clave foránea entre `User` y `Article`).
-- **`select(User.username, Article.title)`**: Selecciona campos específicos de las tablas unidas.
-
-#### **Ejemplo: Unir Varias Tablas**
-
-Es posible realizar un `join()` en más de dos tablas.
+`filter_by()` se utiliza para realizar filtrados basados en igualdad de valores.
 
 ```python
-# Unir usuarios, artículos y etiquetas
-stmt = (select(User.username, Article.title, Tag.name)
-        .join(Article, User.id == Article.user_id)
-        .join(article_tag, Article.id == article_tag.c.article_id)
-        .join(Tag, article_tag.c.tag_id == Tag.id))
+stmt = select(Usuario).filter_by(nombre="Carlos")
 
-resultados = session.execute(stmt).all()
+result = session.execute(stmt).scalars().all()
 
-for username, title, tag in resultados:
-    print(f"Usuario: {username}, Artículo: {title}, Etiqueta: {tag}")
+for usuario in result:
+    print(usuario.nombre, usuario.correo)
 ```
 
-En este ejemplo, se unen las tablas `User`, `Article`, y `Tag` a través de la tabla intermedia `article_tag`.
+#### **Filtrar con `filter()` (filtros complejos)**
+
+El método `filter()` se utiliza para condiciones más complejas que requieren operadores como `>`, `<`, `!=`, etc.
+
+```python
+from sqlalchemy import and_
+
+# Filtrar usuarios cuyo nombre sea 'Carlos' y su id sea mayor que 5
+stmt = select(Usuario).filter(and_(Usuario.nombre == "Carlos", Usuario.id > 5))
+
+result = session.execute(stmt).scalars().all()
+
+for usuario in result:
+    print(usuario.nombre, usuario.correo)
+```
+
+#### **Explicación:**
+- **`filter_by()`**: Ideal para condiciones sencillas donde solo necesitas comparar igualdad.
+- **`filter()`**: Usado para condiciones más avanzadas con operadores.
+- **`and_()`**: Permite combinar múltiples condiciones con un "AND lógico".
 
 ---
 
-### **3. Consultas Avanzadas con SQLAlchemy ORM**
+### **3. Ordenamiento de Resultados**
 
-SQLAlchemy proporciona funcionalidades más avanzadas para consultas complejas, como el uso de funciones de agregación, subconsultas, y el uso de operadores SQL complejos.
+Puedes ordenar los resultados de una consulta utilizando el método `order_by()`.
 
-#### **Ejemplo: Funciones de Agregación**
+#### **Ejemplo: Ordenar por el nombre de usuario de forma ascendente**
 
-Para operaciones como contar, sumar, o promediar, SQLAlchemy ofrece soporte directo mediante las funciones `func`.
+```python
+stmt = select(Usuario).order_by(Usuario.nombre)
+
+result = session.execute(stmt).scalars().all()
+
+for usuario in result:
+    print(usuario.nombre, usuario.correo)
+```
+
+#### **Ejemplo: Ordenar por el ID de usuario de forma descendente**
+
+```python
+from sqlalchemy import desc
+
+stmt = select(Usuario).order_by(desc(Usuario.id))
+
+result = session.execute(stmt).scalars().all()
+
+for usuario in result:
+    print(usuario.nombre, usuario.correo)
+```
+
+- **`order_by()`**: Ordena los resultados según el campo especificado.
+- **`desc()`**: Ordena los resultados de manera descendente.
+
+---
+
+### **4. Joins y Relaciones entre Tablas**
+
+SQLAlchemy permite realizar consultas entre tablas relacionadas utilizando `join()`. Esto es útil cuando se trabaja con modelos relacionados mediante llaves foráneas.
+
+#### **Ejemplo: Join entre dos tablas relacionadas**
+
+Supongamos que tenemos dos tablas: `Usuario` y `Pedido`, donde `Pedido` tiene una relación many-to-one con `Usuario` (es decir, un usuario puede tener varios pedidos).
+
+```python
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
+
+# Modelo Usuario
+class Usuario(Base):
+    __tablename__ = 'usuarios'
+    id = Column(Integer, primary_key=True)
+    nombre = Column(String)
+    pedidos = relationship("Pedido", back_populates="usuario")
+
+# Modelo Pedido
+class Pedido(Base):
+    __tablename__ = 'pedidos'
+    id = Column(Integer, primary_key=True)
+    usuario_id = Column(Integer, ForeignKey('usuarios.id'))
+    descripcion = Column(String)
+    usuario = relationship("Usuario", back_populates="pedidos")
+```
+
+Ahora, para hacer un join entre `Usuario` y `Pedido`:
+
+```python
+stmt = select(Usuario, Pedido).join(Pedido, Usuario.id == Pedido.usuario_id)
+
+result = session.execute(stmt).all()
+
+for usuario, pedido in result:
+    print(f"Usuario: {usuario.nombre}, Pedido: {pedido.descripcion}")
+```
+
+#### **Explicación:**
+- **`join()`**: Realiza una unión entre las tablas `Usuario` y `Pedido` en función de la clave foránea `usuario_id`.
+- El resultado incluye tanto los datos del usuario como los del pedido.
+
+---
+
+### **5. Agregaciones y Funciones SQL**
+
+SQLAlchemy también permite realizar agregaciones y utilizar funciones SQL como `COUNT()`, `SUM()`, `AVG()`, etc.
+
+#### **Ejemplo: Contar el número de usuarios**
 
 ```python
 from sqlalchemy import func
 
-# Contar el número total de artículos
-stmt = select(func.count(Article.id))
-total_articulos = session.execute(stmt).scalar_one()
+stmt = select(func.count(Usuario.id))
 
-print(f"Total de artículos: {total_articulos}")
+result = session.execute(stmt).scalar()
+
+print(f"Total de usuarios: {result}")
 ```
 
-- **`func.count()`**: Es una función de agregación que cuenta el número de filas.
-- **`scalar_one()`**: Devuelve un único valor agregado, como el resultado de `count`.
-
-#### **Ejemplo: Subconsultas**
-
-Las subconsultas permiten realizar consultas anidadas dentro de otras consultas.
+#### **Ejemplo: Obtener el promedio de IDs de usuario**
 
 ```python
-# Obtener los usuarios con más de 2 artículos
-subquery = (select(Article.user_id)
-            .group_by(Article.user_id)
-            .having(func.count(Article.id) > 2)
-            .subquery())
+stmt = select(func.avg(Usuario.id))
 
-stmt = select(User).where(User.id.in_(subquery))
-usuarios = session.execute(stmt).scalars().all()
+result = session.execute(stmt).scalar()
 
-for usuario in usuarios:
-    print(usuario.username)
+print(f"Promedio de IDs: {result}")
 ```
 
-En este ejemplo, se hace una subconsulta para seleccionar usuarios que tengan más de 2 artículos.
+#### **Explicación:**
+- **`func.count()`**: Realiza una operación de conteo en la columna especificada.
+- **`func.avg()`**: Calcula el promedio de los valores de la columna.
+
+SQLAlchemy tiene una amplia gama de funciones de agregación y SQL que pueden ser usadas de manera similar a las mostradas.
 
 ---
 
-### **4. Consultas con SQL Bruto (Raw SQL)**
+### **Conclusión del Punto 6: Consultas Avanzadas con SQLAlchemy**
 
-Aunque el ORM de SQLAlchemy es extremadamente potente, también se puede ejecutar consultas SQL nativas si es necesario.
+Las consultas avanzadas con SQLAlchemy ofrecen una manera poderosa de interactuar con los datos en tu base de datos. Los conceptos clave incluyen:
 
-#### **Ejemplo: Consultar con SQL Nativo**
+- **Uso de `select()`**: Realiza consultas flexibles y eficientes.
+- **Filtrado**: Utiliza `filter_by()` para condiciones simples y `filter()` para filtros más complejos.
+- **Ordenamiento**: Ordena los resultados con `order_by()`.
+- **Joins**: Realiza consultas entre tablas relacionadas usando `join()`.
+- **Agregaciones**: Realiza operaciones SQL avanzadas como `COUNT()`, `SUM()`, y más con `func`.
 
-```python
-# Ejecutar una consulta SQL directamente
-resultados = session.execute("SELECT * FROM users WHERE username = :username", {"username": "Abiel"}).fetchall()
-
-for row in resultados:
-    print(row)
-```
-
-- **`session.execute()`**: Permite ejecutar cualquier consulta SQL nativa.
-- **`fetchall()`**: Devuelve todos los resultados como filas.
-
-Este enfoque es útil cuando necesitas escribir consultas SQL personalizadas o muy específicas que no se pueden modelar fácilmente con el ORM.
+Con estas herramientas, puedes construir consultas SQL sofisticadas y optimizadas, manteniendo el control total sobre los datos en tu aplicación.
 
 ---
 
-### **5. Actualizaciones y Eliminaciones con SQLAlchemy ORM**
+## **7. Relaciones entre Modelos**
 
-SQLAlchemy también facilita las operaciones de actualización y eliminación de registros.
+Cuando trabajas con bases de datos relacionales, un aspecto crucial es cómo modelas las relaciones entre las diferentes tablas (o modelos) de tu aplicación. En SQLAlchemy ORM, estas relaciones se definen utilizando **relaciones** entre las clases que representan tus tablas. Existen varios tipos de relaciones comunes:
 
-#### **Ejemplo: Actualizar un Registro**
+- **One-to-Many** (Uno a Muchos)
+- **Many-to-One** (Muchos a Uno)
+- **Many-to-Many** (Muchos a Muchos)
+- **One-to-One** (Uno a Uno)
+
+SQLAlchemy te permite definir estas relaciones utilizando la función `relationship()` y gestionarlas a través de claves foráneas (`ForeignKey`) en los modelos.
+
+### **1. One-to-Many (Uno a Muchos)**
+
+La relación **One-to-Many** es una de las más comunes. Un ejemplo típico sería la relación entre un usuario y sus publicaciones en un blog: un usuario puede tener muchas publicaciones, pero cada publicación pertenece a un único usuario.
+
+#### **Definición**
+
+Para modelar esto en SQLAlchemy, necesitas una clave foránea en el lado de "muchos" y una `relationship()` en el lado de "uno".
 
 ```python
-# Consultar un usuario
-usuario = session.execute(select(User).where(User.username == "Abiel")).scalar_one()
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 
-# Actualizar su nombre
-usuario.username = "AbielS"
+Base = declarative_base()
 
-# Confirmar los cambios
-session.commit()
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    
+    # Relación Uno a Muchos
+    posts = relationship("Post", back_populates="author")
+
+class Post(Base):
+    __tablename__ = 'posts'
+    
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    user_id = Column(Integer, ForeignKey('users.id'))  # Clave foránea
+    
+    # Relación de Muchos a Uno
+    author = relationship("User", back_populates="posts")
 ```
 
-#### **Ejemplo: Eliminar un Registro**
+#### **Explicación**:
+
+- En la clase `Post`, definimos una columna `user_id` que actúa como una clave foránea, conectando cada publicación con un usuario específico.
+- La relación entre `User` y `Post` se maneja mediante la función `relationship()`, que define cómo se acceden los datos relacionados. Aquí utilizamos `back_populates` para que la relación sea bidireccional: el usuario conoce sus publicaciones, y la publicación conoce a su autor.
+
+#### **Consultas con Relaciones One-to-Many**
 
 ```python
-# Consultar un artículo
-articulo = session.execute(select(Article).where(Article.title == "Artículo 1")).scalar_one()
+# Crear un nuevo usuario con publicaciones
+new_user = User(name="Juan")
+new_user.posts = [Post(title="Primera publicación"), Post(title="Segunda publicación")]
 
-# Eliminarlo
-session.delete(articulo)
-
-# Confirmar los cambios
-session.commit()
-```
-
----
-
-### **6. Consultas en Paginas (Paginación)**
-
-SQLAlchemy permite dividir los resultados en páginas, útil en aplicaciones web o APIs donde se muestran grandes cantidades de datos.
-
-#### **Ejemplo: Paginación de Resultados**
-
-```python
-# Obtener la segunda página de 10 artículos
-page = 2
-page_size = 10
-
-stmt = select(Article).offset((page - 1) * page_size).limit(page_size)
-articulos = session.execute(stmt).scalars().all()
-
-for articulo in articulos:
-    print(articulo.title)
-```
-
-- **`offset()`**: Salta un número de registros.
-- **`limit()`**: Define el límite de registros a recuperar.
-
----
-
-### **Resumen**
-
-1. **Consultas Básicas**: Usar `select()` y `where()` para consultas simples y filtros.
-2. **Consultas con Relaciones**: Usar `join()` para combinar datos de varias tablas relacionadas.
-3. **Consultas Avanzadas**: Funciones de agregación, subconsultas y operadores complejos.
-4. **SQL Bruto**: Ejecutar SQL nativo directamente cuando sea necesario.
-5. **Actualizaciones y Eliminaciones**: Modificar y eliminar registros fácilmente.
-6. **Paginación**: Dividir resultados en páginas para manejar grandes cantidades de datos.
-
----
-
-## **8. Actualización y Eliminación de Datos con SQLAlchemy**
-
-Al igual que con las consultas, la actualización y eliminación de registros en la base de datos es sencilla utilizando SQLAlchemy, tanto en su capa de ORM como en la capa SQL nativa. A continuación, te mostraré cómo hacerlo con SQLAlchemy 2.0.
-
-### **1. Actualización de Datos**
-
-#### **Actualización Individual**
-
-Para actualizar un registro individual, primero debes consultar el registro que deseas modificar, realizar los cambios necesarios y luego confirmarlos con `commit()`.
-
-#### **Ejemplo: Actualizar el Nombre de un Usuario**
-
-```python
-# Consultar el usuario por su nombre
-stmt = select(User).where(User.username == "Abiel")
-usuario = session.execute(stmt).scalar_one()
-
-# Cambiar el nombre del usuario
-usuario.username = "AbielS"
-
-# Guardar los cambios
+# Guardar en la base de datos
+session.add(new_user)
 session.commit()
 
-print(f"Nombre actualizado a: {usuario.username}")
+# Consultar un usuario y sus publicaciones
+user = session.query(User).filter_by(name="Juan").first()
+for post in user.posts:
+    print(post.title)
 ```
 
-- **`select()`**: Se usa para obtener el objeto que se va a actualizar.
-- **`scalar_one()`**: Obtiene un único registro; lanza una excepción si no se encuentra o hay más de uno.
-- **`commit()`**: Aplica los cambios a la base de datos.
+### **2. Many-to-Many (Muchos a Muchos)**
 
-#### **Actualización en Lote**
+Una relación **Many-to-Many** ocurre cuando un registro en una tabla puede estar relacionado con varios registros en otra tabla, y viceversa. Un ejemplo clásico es la relación entre estudiantes y cursos: un estudiante puede inscribirse en varios cursos, y un curso puede tener varios estudiantes.
 
-SQLAlchemy también permite realizar actualizaciones masivas (bulk updates) sin necesidad de cargar primero los objetos en la sesión. Esto es útil cuando se necesitan realizar muchas actualizaciones y no se quiere afectar el rendimiento.
+#### **Definición**
 
-#### **Ejemplo: Actualizar Múltiples Usuarios**
+En SQLAlchemy, modelamos esta relación usando una tabla intermedia (o tabla de asociación) que contiene las claves foráneas de ambas tablas relacionadas.
 
 ```python
-# Actualizar todos los usuarios cuyo nombre sea "Abiel" a "AbielS"
-stmt = (update(User)
-        .where(User.username == "Abiel")
-        .values(username="AbielS"))
+from sqlalchemy import Table, Column, Integer, ForeignKey
+from sqlalchemy.orm import relationship
 
-# Ejecutar la actualización
-session.execute(stmt)
-session.commit()
+# Tabla de asociación para la relación Muchos a Muchos
+student_course = Table('student_course', Base.metadata,
+    Column('student_id', Integer, ForeignKey('students.id')),
+    Column('course_id', Integer, ForeignKey('courses.id'))
+)
 
-print("Usuarios actualizados.")
+class Student(Base):
+    __tablename__ = 'students'
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    
+    # Relación Muchos a Muchos
+    courses = relationship("Course", secondary=student_course, back_populates="students")
+
+class Course(Base):
+    __tablename__ = 'courses'
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    
+    # Relación Muchos a Muchos
+    students = relationship("Student", secondary=student_course, back_populates="courses")
 ```
 
-- **`update()`**: Se usa para realizar actualizaciones en lote.
-- **`values()`**: Especifica los nuevos valores para las columnas.
-- **`session.execute()`**: Ejecuta la sentencia SQL generada por `update()`.
+#### **Explicación**:
+
+- La tabla `student_course` actúa como una tabla de asociación que contiene las claves foráneas tanto de `Student` como de `Course`.
+- Usamos `relationship()` con el argumento `secondary` para indicar que esta relación se maneja a través de una tabla intermedia.
+
+#### **Consultas con Relaciones Many-to-Many**
+
+```python
+# Crear un estudiante con cursos
+student = Student(name="Ana")
+course1 = Course(name="Matemáticas")
+course2 = Course(name="Ciencias")
+student.courses = [course1, course2]
+
+# Guardar en la base de datos
+session.add(student)
+session.commit()
+
+# Consultar los cursos de un estudiante
+student = session.query(Student).filter_by(name="Ana").first()
+for course in student.courses:
+    print(course.name)
+```
+
+### **3. One-to-One (Uno a Uno)**
+
+En una relación **One-to-One**, un registro en una tabla está asociado con un único registro en otra tabla. Por ejemplo, una persona puede tener solo un pasaporte, y un pasaporte pertenece a una sola persona.
+
+#### **Definición**
+
+En SQLAlchemy, puedes definir una relación **One-to-One** usando una clave foránea y especificando que la relación es única mediante `unique=True`.
+
+```python
+class Person(Base):
+    __tablename__ = 'people'
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    
+    # Relación Uno a Uno
+    passport = relationship("Passport", uselist=False, back_populates="owner")
+
+class Passport(Base):
+    __tablename__ = 'passports'
+    
+    id = Column(Integer, primary_key=True)
+    number = Column(String, unique=True)
+    person_id = Column(Integer, ForeignKey('people.id'), unique=True)  # Clave foránea única
+    
+    # Relación Uno a Uno
+    owner = relationship("Person", back_populates="passport")
+```
+
+#### **Explicación**:
+
+- En `Passport`, la columna `person_id` es una clave foránea que también es única, lo que asegura que un pasaporte solo puede estar asociado a una persona.
+- En la relación `Person` y `Passport`, usamos `uselist=False` para indicar que es una relación de uno a uno (en lugar de una lista de objetos relacionados, será solo un objeto).
+
+#### **Consultas con Relaciones One-to-One**
+
+```python
+# Crear una persona con un pasaporte
+person = Person(name="Carlos")
+passport = Passport(number="A1234567")
+person.passport = passport
+
+# Guardar en la base de datos
+session.add(person)
+session.commit()
+
+# Consultar el pasaporte de una persona
+person = session.query(Person).filter_by(name="Carlos").first()
+print(person.passport.number)
+```
+
+### **4. Relaciones Bidireccionales**
+
+Es importante notar que SQLAlchemy permite definir relaciones bidireccionales, lo que significa que puedes acceder a los datos relacionados desde ambos lados de la relación. Usamos `back_populates` o `backref` para lograrlo.
+
+#### **Back_populates**
+
+Ya hemos visto ejemplos con `back_populates`, que se utiliza para declarar explícitamente la relación en ambos lados.
+
+#### **Backref**
+
+`backref` es una alternativa a `back_populates`, que automáticamente configura la relación bidireccional sin tener que definirla dos veces.
+
+```python
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    
+    # Usando backref en lugar de back_populates
+    posts = relationship("Post", backref="author")
+
+class Post(Base):
+    __tablename__ = 'posts'
+    
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    user_id = Column(Integer, ForeignKey('users.id'))
+```
 
 ---
 
-### **2. Eliminación de Datos**
+## **8. Transacciones y Manejo de Sesiones**
 
-Al igual que con la actualización, SQLAlchemy ofrece dos formas de eliminar registros: de manera individual o en lotes.
+El manejo de sesiones y transacciones es un aspecto fundamental en cualquier aplicación que interactúa con bases de datos. Las **sesiones** en SQLAlchemy se encargan de gestionar las interacciones entre los objetos del ORM y la base de datos. Estas sesiones también permiten controlar el **ciclo de vida de las transacciones**, asegurando que los cambios se confirmen o deshagan correctamente.
 
-#### **Eliminación Individual**
+En este punto, aprenderemos cómo gestionar las **sesiones**, las **transacciones**, y cómo controlar el **manejo de errores** al interactuar con la base de datos.
 
-Para eliminar un registro individual, primero lo consultas, luego usas `session.delete()` para eliminarlo, y finalmente aplicas los cambios con `commit()`.
+### **1. La Clase `Session`**
 
-#### **Ejemplo: Eliminar un Usuario**
+La clase `Session` en SQLAlchemy es el componente principal para interactuar con la base de datos. Se encarga de:
+
+- Realizar consultas a la base de datos.
+- Añadir, actualizar o eliminar objetos en las tablas.
+- Mantener un conjunto de objetos "en memoria" para realizar operaciones.
+- Gestionar las transacciones.
+
+Para usar una sesión, primero debes crear un **"Session Factory"** (fábrica de sesiones) mediante `sessionmaker` y luego instanciar una sesión para cada bloque de operaciones que quieras realizar.
+
+#### **Ejemplo de Creación de Sesión:**
 
 ```python
-# Consultar el usuario por su nombre
-stmt = select(User).where(User.username == "AbielS")
-usuario = session.execute(stmt).scalar_one()
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
 
-# Eliminar el usuario
+# Crear el motor de base de datos
+engine = create_engine('sqlite:///mi_base_de_datos.db')
+
+# Crear una fábrica de sesiones
+Session = sessionmaker(bind=engine)
+
+# Crear una sesión nueva
+session = Session()
+```
+
+### **2. Añadir, Actualizar y Eliminar Objetos con la Sesión**
+
+La sesión mantiene el estado de los objetos en memoria y controla cuándo realizar cambios en la base de datos. Veamos cómo realizar operaciones básicas:
+
+#### **Añadir Objetos:**
+
+Para insertar nuevos registros en la base de datos, usamos el método `add()` y luego confirmamos los cambios con `commit()`.
+
+```python
+nuevo_usuario = User(name="Carlos")
+session.add(nuevo_usuario)
+session.commit()  # Los cambios se confirman (se insertan en la base de datos)
+```
+
+#### **Actualizar Objetos:**
+
+Para actualizar un objeto, basta con modificar sus atributos y luego llamar a `commit()` para que los cambios se reflejen en la base de datos.
+
+```python
+usuario = session.query(User).filter_by(name="Carlos").first()
+usuario.name = "Carlos Ramírez"
+session.commit()  # Los cambios se confirman
+```
+
+#### **Eliminar Objetos:**
+
+Para eliminar un objeto, usamos el método `delete()` seguido de `commit()`.
+
+```python
+usuario = session.query(User).filter_by(name="Carlos Ramírez").first()
 session.delete(usuario)
-session.commit()
-
-print(f"Usuario {usuario.username} eliminado.")
+session.commit()  # El registro se elimina
 ```
 
-- **`session.delete()`**: Marca el objeto para eliminación en la base de datos.
-- **`commit()`**: Aplica los cambios y elimina el registro de la base de datos.
+### **3. Contexto de Sesión y `Session.begin()`**
 
-#### **Eliminación en Lote**
-
-Al igual que con las actualizaciones en lote, SQLAlchemy también permite eliminar múltiples registros en una sola operación sin necesidad de cargarlos todos en la sesión.
-
-#### **Ejemplo: Eliminar Usuarios en Lote**
+SQLAlchemy permite un manejo más seguro y limpio de las transacciones utilizando **contextos de sesión**. Esto asegura que cualquier excepción o error que ocurra durante la transacción deshaga (haga rollback) los cambios automáticamente.
 
 ```python
-# Eliminar todos los usuarios cuyo nombre sea "AbielS"
-stmt = delete(User).where(User.username == "AbielS")
-
-# Ejecutar la eliminación
-session.execute(stmt)
-session.commit()
-
-print("Usuarios eliminados.")
+# Manejo de transacciones con `begin()`
+with Session() as session:
+    with session.begin():
+        nuevo_usuario = User(name="Ana")
+        session.add(nuevo_usuario)
 ```
 
-- **`delete()`**: Genera una sentencia SQL para eliminar los registros que coincidan con la condición especificada.
-- **`session.execute()`**: Ejecuta la operación de eliminación en la base de datos.
+#### **Explicación**:
 
----
+- Con el bloque `with`, SQLAlchemy gestiona automáticamente la sesión y la transacción.
+- Si ocurre algún error dentro del bloque, los cambios se deshacen automáticamente.
+- Al final del bloque, si no hay errores, se hace el `commit()` de los cambios.
 
-### **3. Operaciones en Cascada**
+### **4. Manejo de Transacciones Manualmente**
 
-SQLAlchemy permite realizar operaciones en cascada, lo que significa que si eliminas un registro, sus registros relacionados también pueden ser eliminados automáticamente, dependiendo de la configuración de las relaciones. Esto es útil cuando trabajas con tablas que están relacionadas entre sí, como cuando tienes una relación `Padre-Hijo` entre modelos.
-
-#### **Ejemplo: Eliminar un Usuario y sus Artículos en Cascada**
-
-Si has configurado la relación con `cascade="all, delete"`, al eliminar un usuario, también se eliminarán automáticamente todos los artículos relacionados con ese usuario.
+También puedes manejar manualmente el inicio, confirmación y retroceso de transacciones utilizando `begin()`, `commit()` y `rollback()`.
 
 ```python
-# Consultar el usuario por su nombre
-stmt = select(User).where(User.username == "AbielS")
-usuario = session.execute(stmt).scalar_one()
+session = Session()
 
-# Eliminar el usuario (y sus artículos)
-session.delete(usuario)
-session.commit()
+# Iniciar una transacción manualmente
+session.begin()
 
-print(f"Usuario {usuario.username} y sus artículos eliminados.")
+try:
+    nuevo_usuario = User(name="Pedro")
+    session.add(nuevo_usuario)
+    
+    # Confirmar la transacción
+    session.commit()
+    
+except:
+    # Deshacer los cambios si hay un error
+    session.rollback()
+    raise
+finally:
+    # Cerrar la sesión
+    session.close()
 ```
 
-- **`cascade="all, delete"`**: Se configura en la relación entre `User` y `Article`, asegurando que los artículos del usuario también se eliminen al eliminar el usuario.
+#### **Explicación**:
 
----
+- `session.begin()` inicia una transacción.
+- Si ocurre una excepción, usamos `session.rollback()` para deshacer los cambios.
+- Finalmente, cerramos la sesión con `session.close()`.
 
-### **4. Manejando Transacciones**
+### **5. Manejo de Errores en Transacciones**
 
-Tanto las actualizaciones como las eliminaciones están encapsuladas en transacciones. SQLAlchemy maneja automáticamente las transacciones por ti, pero también puedes manejarlas manualmente si lo prefieres, lo que es útil cuando necesitas asegurar la consistencia de datos.
+Es importante manejar los posibles errores o excepciones que ocurran durante una transacción, para evitar dejar la base de datos en un estado inconsistente. SQLAlchemy proporciona excepciones específicas como `IntegrityError` para manejar estos casos.
 
-#### **Ejemplo: Manejar una Transacción Manualmente**
+#### **Ejemplo:**
 
 ```python
 from sqlalchemy.exc import IntegrityError
 
-# Iniciar la transacción
 try:
-    # Realizar múltiples operaciones
-    usuario = session.execute(select(User).where(User.username == "AbielS")).scalar_one()
-    usuario.username = "NuevoNombre"
-    session.delete(usuario)
-
-    # Confirmar los cambios
+    session.add(User(name="Carlos"))
     session.commit()
 except IntegrityError:
-    # Si algo sale mal, revertir los cambios
-    session.rollback()
-    print("Error en la transacción, se han revertido los cambios.")
+    session.rollback()  # Deshacer la transacción en caso de error
+    print("Error de integridad, cambios deshechos.")
 ```
 
-- **`session.commit()`**: Aplica los cambios realizados durante la transacción.
-- **`session.rollback()`**: Revierte los cambios si algo falla, garantizando la consistencia de la base de datos.
+### **6. Sesiones Asincrónicas con `AsyncSession`**
+
+SQLAlchemy 2.0 introdujo el soporte completo para operaciones asincrónicas usando `asyncio`. Esto es especialmente útil en aplicaciones web que necesitan manejar múltiples solicitudes simultáneamente sin bloquear.
+
+#### **Configuración de Sesiones Asincrónicas:**
+
+1. Asegúrate de instalar la versión asincrónica del adaptador de tu base de datos (por ejemplo, `asyncpg` para PostgreSQL).
+   
+2. Usa `AsyncSession` y el motor asincrónico (`create_async_engine`).
+
+```python
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
+
+# Crear el motor asincrónico
+async_engine = create_async_engine('postgresql+asyncpg://usuario:password@localhost/base_de_datos')
+
+# Crear una fábrica de sesiones asincrónicas
+AsyncSessionLocal = sessionmaker(bind=async_engine, class_=AsyncSession, expire_on_commit=False)
+
+# Crear una sesión asincrónica
+async with AsyncSessionLocal() as session:
+    async with session.begin():
+        nuevo_usuario = User(name="Laura")
+        session.add(nuevo_usuario)
+```
+
+#### **Puntos Importantes**:
+
+- Al usar `AsyncSession`, las consultas y transacciones deben ser manejadas dentro de funciones asincrónicas utilizando `async def`.
+- Usa `async with` para manejar el contexto de las sesiones y transacciones de manera eficiente.
 
 ---
 
-### **Resumen**
+## **9. Migraciones de Esquema**
 
-1. **Actualización de Datos**: Se puede actualizar un solo registro o realizar actualizaciones en lote usando `select()` o `update()`.
-2. **Eliminación de Datos**: De manera similar a las actualizaciones, puedes eliminar un registro o hacerlo en lote con `delete()`.
-3. **Operaciones en Cascada**: Al eliminar un registro, puedes eliminar automáticamente sus relaciones si está configurado con `cascade="all, delete"`.
-4. **Manejo de Transacciones**: SQLAlchemy facilita el manejo de transacciones para garantizar la integridad de los datos durante las operaciones de actualización o eliminación.
+Conforme una aplicación crece y evoluciona, es común que la estructura de la base de datos necesite cambios. Esto puede incluir la creación de nuevas tablas, la adición de nuevas columnas, o la modificación de las relaciones entre tablas. Para gestionar estos cambios de manera controlada y sin perder datos, usamos **migraciones** de esquema. En SQLAlchemy, las migraciones se gestionan generalmente a través de una herramienta externa llamada **Alembic**.
+
+### **1. Introducción a las Migraciones**
+
+Las migraciones de esquema son el proceso de modificar la estructura de la base de datos a lo largo del tiempo. Permiten realizar cambios en la base de datos de forma controlada y reproducible, asegurando que la estructura de la base de datos esté sincronizada con el código de la aplicación.
+
+**Algunas tareas comunes que cubren las migraciones son:**
+- Añadir o eliminar tablas.
+- Modificar columnas existentes (nombre, tipo de dato, etc.).
+- Crear o eliminar relaciones entre tablas.
+- Aplicar cambios a una base de datos ya en producción sin perder datos.
+
+### **2. Alembic: La Herramienta para Migraciones en SQLAlchemy**
+
+Alembic es la herramienta de migraciones oficial para SQLAlchemy. Se integra fácilmente con SQLAlchemy para realizar cambios en la estructura de la base de datos sin necesidad de eliminar datos existentes.
+
+#### **Instalación de Alembic**
+
+Para comenzar a usar Alembic, primero necesitas instalarlo. Puedes hacerlo a través de `pip`:
+
+```bash
+pip install alembic
+```
+
+#### **Inicializando Alembic en tu Proyecto**
+
+Una vez instalado, lo primero que debes hacer es inicializar un entorno de Alembic en tu proyecto. Esto creará una serie de archivos y directorios que Alembic usará para gestionar las migraciones.
+
+```bash
+alembic init migrations
+```
+
+Esto creará una carpeta `migrations/` con los archivos necesarios, como `alembic.ini`, donde puedes configurar la conexión a la base de datos.
+
+#### **Configuración del archivo `alembic.ini`**
+
+Debes editar el archivo `alembic.ini` para asegurarte de que Alembic pueda conectarse a tu base de datos. Localiza la siguiente línea y reemplázala con la URL de conexión a tu base de datos:
+
+```ini
+# Dentro de alembic.ini
+sqlalchemy.url = sqlite:///example.db
+```
+
+Si usas PostgreSQL, por ejemplo, la URL sería algo como:
+
+```ini
+sqlalchemy.url = postgresql://user:password@localhost/mydatabase
+```
+
+#### **Crear el archivo `env.py` y configurar SQLAlchemy**
+
+Dentro del directorio `migrations/`, hay un archivo llamado `env.py`. Aquí debes asegurarte de que Alembic sepa cómo conectarse a tu motor de SQLAlchemy y tus modelos.
+
+Modifica el archivo `env.py` para importar tu modelo y el motor de base de datos desde tu aplicación.
+
+```python
+from myapp import Base, engine
+
+# Reemplaza esta línea con tu motor
+target_metadata = Base.metadata
+```
+
+### **3. Creación y Aplicación de Migraciones**
+
+Una vez que Alembic está configurado, puedes comenzar a crear y aplicar migraciones a tu base de datos.
+
+#### **Crear una Migración**
+
+Para generar una nueva migración, usas el siguiente comando:
+
+```bash
+alembic revision --autogenerate -m "Descripción de la migración"
+```
+
+El argumento `--autogenerate` le dice a Alembic que compare los modelos actuales con la estructura de la base de datos y genere automáticamente una migración con los cambios necesarios.
+
+#### **Aplicar una Migración**
+
+Una vez creada la migración, puedes aplicar los cambios a la base de datos con:
+
+```bash
+alembic upgrade head
+```
+
+Este comando aplicará todas las migraciones pendientes en orden, asegurando que la base de datos esté actualizada con la última versión del esquema.
+
+#### **Revertir una Migración**
+
+Si deseas revertir una migración, puedes usar el comando:
+
+```bash
+alembic downgrade -1
+```
+
+Esto revertirá solo la última migración. También puedes especificar una versión concreta a la cual volver, usando el ID de la migración.
+
+### **4. Estructura de una Migración**
+
+Cada migración que crea Alembic es un archivo Python dentro del directorio `migrations/versions/`. Este archivo contiene dos funciones principales:
+
+- **`upgrade()`**: Aplica los cambios a la base de datos.
+- **`downgrade()`**: Revertir los cambios si es necesario.
+
+**Ejemplo de un archivo de migración:**
+
+```python
+from alembic import op
+import sqlalchemy as sa
+
+# Nombre de revisión, generado por Alembic
+revision = 'abcdef123456'
+down_revision = '123456abcdef'
+
+def upgrade():
+    op.add_column('users', sa.Column('email', sa.String(), nullable=True))
+
+def downgrade():
+    op.drop_column('users', 'email')
+```
+
+En este ejemplo, la función `upgrade()` añade una columna `email` a la tabla `users`, mientras que `downgrade()` la elimina.
+
+### **5. Migraciones Manuales vs. Autogeneradas**
+
+Alembic puede generar migraciones automáticamente mediante el uso del argumento `--autogenerate`, pero también puedes escribir migraciones manuales si necesitas un control más detallado.
+
+Las migraciones autogeneradas comparan el esquema actual de la base de datos con tus modelos de SQLAlchemy y determinan los cambios. Sin embargo, en algunos casos complejos (como renombrar columnas o tablas), es posible que necesites escribir migraciones manuales.
+
+### **6. Buenas Prácticas para Migraciones**
+
+- **Prueba tus migraciones**: Antes de aplicar una migración a la base de datos de producción, siempre es una buena idea probarla en un entorno de desarrollo o staging.
+- **Haz backups**: Asegúrate de tener backups regulares de tu base de datos antes de aplicar migraciones, especialmente si la base de datos contiene datos importantes.
+- **Usa migraciones incrementales**: En lugar de hacer grandes cambios en una sola migración, es mejor hacer varios pequeños cambios en migraciones separadas. Esto facilita la identificación de problemas y su solución.
+
+---
+
+### **Resumen del Punto 9:**
+
+1. **Migraciones**: Son esenciales para cambiar el esquema de la base de datos a lo largo del tiempo.
+2. **Alembic**: Es la herramienta oficial para manejar migraciones con SQLAlchemy.
+3. **Configuración de Alembic**: Implica inicializar Alembic y configurarlo para que funcione con los modelos de SQLAlchemy.
+4. **Creación y Aplicación de Migraciones**: Se pueden generar automáticamente o escribir manualmente según sea necesario.
+5. **Buenas Prácticas**: Prueba, haz backups y haz migraciones incrementales.
+
+---
+
+## **10. Uso Asincrónico de SQLAlchemy**
+
+SQLAlchemy en su versión 2.0 ha mejorado considerablemente el soporte para la programación asincrónica, lo cual es especialmente útil para aplicaciones web modernas que manejan un gran número de peticiones simultáneas. El uso de asincronía permite liberar el hilo principal mientras se espera la respuesta de operaciones de I/O, como la consulta a bases de datos, lo que aumenta la eficiencia del sistema.
+
+### **1. ¿Por qué usar asincronía?**
+
+La asincronía es útil en aplicaciones que manejan muchas operaciones de entrada/salida (I/O), como el acceso a bases de datos. Sin asincronía, cada operación que involucra la comunicación con una base de datos (como una consulta o inserción) bloqueará el hilo principal hasta que la operación se complete. Con la asincronía, podemos liberar el hilo principal para manejar otras tareas mientras la operación se completa en segundo plano.
+
+**Beneficios del uso asincrónico en SQLAlchemy:**
+- Mejor rendimiento en aplicaciones que hacen múltiples operaciones de I/O (como peticiones a bases de datos).
+- Mayor capacidad de manejo de múltiples peticiones simultáneas en aplicaciones web.
+- Mejora la escalabilidad de aplicaciones de alto tráfico.
+
+### **2. Configuración Asincrónica en SQLAlchemy 2.0**
+
+SQLAlchemy 2.0 proporciona una API dedicada para el uso asincrónico a través del módulo `sqlalchemy.ext.asyncio`. Para comenzar a usar SQLAlchemy en un entorno asincrónico, es necesario configurar un motor asincrónico (`async engine`) y sesiones asincrónicas (`async session`).
+
+#### **Creación de un Motor Asincrónico**
+
+El motor asincrónico en SQLAlchemy se crea de una manera similar a un motor síncrono, pero con la palabra clave `async_engine`. Un motor asincrónico se usa para ejecutar operaciones de I/O no bloqueantes con la base de datos.
+
+```python
+from sqlalchemy.ext.asyncio import create_async_engine
+
+# Creación de un motor asincrónico
+async_engine = create_async_engine(
+    "postgresql+asyncpg://user:password@localhost/mydatabase",
+    echo=True,
+)
+```
+
+En este ejemplo, usamos el conector `asyncpg` para PostgreSQL, que es uno de los conectores asincrónicos más populares. Existen otros conectores asincrónicos dependiendo de la base de datos que uses, como `aiomysql` para MySQL.
+
+#### **Sesiones Asincrónicas**
+
+Al igual que en las operaciones síncronas, SQLAlchemy requiere una sesión para interactuar con la base de datos, pero en este caso, usamos `AsyncSession`.
+
+```python
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import sessionmaker
+
+# Creación de la fábrica de sesiones asincrónicas
+async_session = sessionmaker(
+    async_engine, 
+    expire_on_commit=False, 
+    class_=AsyncSession
+)
+
+# Uso de una sesión asincrónica en un contexto asincrónico
+async with async_session() as session:
+    # Aquí puedes hacer operaciones con la base de datos
+    pass
+```
+
+### **3. Ejecución de Consultas Asincrónicas**
+
+Las operaciones de consulta con SQLAlchemy en modo asincrónico son similares a las operaciones síncronas, pero usando `await` en cada operación que interactúe con la base de datos, ya que estas operaciones son no bloqueantes.
+
+#### **Consultas Básicas**
+
+Aquí hay un ejemplo de cómo realizar una consulta de lectura asincrónica:
+
+```python
+from sqlalchemy.future import select
+from myapp.models import User
+
+async def get_user_by_id(user_id: int):
+    async with async_session() as session:
+        async with session.begin():
+            result = await session.execute(select(User).where(User.id == user_id))
+            user = result.scalar_one_or_none()
+            return user
+```
+
+En este ejemplo:
+- **`select()`**: Usamos el método `select()` para crear una consulta SELECT que busca un `User` por su ID.
+- **`await`**: La operación de consulta a la base de datos es no bloqueante, por lo que utilizamos `await` para esperar su resultado.
+
+#### **Insertar Datos Asincrónicamente**
+
+Para insertar datos de manera asincrónica, usamos el mismo patrón de `await` y las operaciones básicas de SQLAlchemy:
+
+```python
+from myapp.models import User
+
+async def add_user(username: str, email: str):
+    async with async_session() as session:
+        async with session.begin():
+            new_user = User(username=username, email=email)
+            session.add(new_user)
+            await session.commit()
+```
+
+En este ejemplo:
+- Creamos una nueva instancia del modelo `User`.
+- Usamos `session.add()` para agregar el nuevo objeto a la base de datos.
+- Finalmente, usamos `await session.commit()` para guardar los cambios en la base de datos de forma no bloqueante.
+
+#### **Actualizar Registros Asincrónicamente**
+
+Actualizar registros también sigue el mismo patrón:
+
+```python
+async def update_user_email(user_id: int, new_email: str):
+    async with async_session() as session:
+        async with session.begin():
+            result = await session.execute(select(User).where(User.id == user_id))
+            user = result.scalar_one_or_none()
+            if user:
+                user.email = new_email
+                await session.commit()
+```
+
+#### **Eliminar Registros Asincrónicamente**
+
+Para eliminar registros, también utilizamos `await` para garantizar que las operaciones sean no bloqueantes:
+
+```python
+async def delete_user(user_id: int):
+    async with async_session() as session:
+        async with session.begin():
+            result = await session.execute(select(User).where(User.id == user_id))
+            user = result.scalar_one_or_none()
+            if user:
+                await session.delete(user)
+                await session.commit()
+```
+
+### **4. Transacciones Asincrónicas**
+
+El manejo de transacciones en SQLAlchemy asincrónico es muy similar al síncrono, utilizando `session.begin()` para iniciar transacciones. En un entorno asincrónico, también puedes manejar las transacciones de manera no bloqueante:
+
+```python
+async with async_session() as session:
+    async with session.begin():
+        # Operaciones dentro de una transacción
+        pass
+```
+
+Si ocurre algún error dentro de este bloque, la transacción se revertirá automáticamente.
+
+### **5. Buenas Prácticas con Asincronía en SQLAlchemy**
+
+- **Usa el motor correcto**: Asegúrate de que tu motor sea asincrónico (`create_async_engine`) y que uses un conector asincrónico adecuado (como `asyncpg` o `aiomysql`).
+- **Manejo de sesiones**: Utiliza sesiones asincrónicas (`AsyncSession`) y asegúrate de cerrarlas adecuadamente usando `async with` para manejar el ciclo de vida de la sesión.
+- **Consultas no bloqueantes**: Todas las operaciones que interactúen con la base de datos deben usar `await` para aprovechar la naturaleza no bloqueante de la asincronía.
+- **Optimiza el uso de `await`**: No uses `await` innecesariamente en operaciones que no interactúan con I/O, ya que puede afectar el rendimiento.
+
+### **Resumen del Punto 10:**
+
+1. **SQLAlchemy 2.0** soporta asincronía nativamente a través del módulo `sqlalchemy.ext.asyncio`.
+2. **Motor asincrónico**: Se crea usando `create_async_engine()`.
+3. **Sesiones asincrónicas**: Se gestionan usando `AsyncSession` y `sessionmaker`.
+4. **Consultas**: Las operaciones CRUD en SQLAlchemy asincrónico requieren el uso de `await` para que sean no bloqueantes.
+5. **Transacciones**: Se manejan usando `session.begin()` con asincronía.
+
+---
+
+
+## **11. Buenas Prácticas y Optimización**
+
+Cuando trabajas con SQLAlchemy, hay varias estrategias que puedes aplicar para asegurarte de que tu aplicación sea eficiente, escalable y fácil de mantener. Optimizar consultas, gestionar correctamente las conexiones y seguir buenas prácticas generales son esenciales para sacar el máximo rendimiento de tu aplicación con SQLAlchemy.
+
+### **1. Optimización de Consultas**
+
+Las consultas ineficientes a la base de datos pueden ser una fuente importante de cuellos de botella en el rendimiento de una aplicación. Aquí hay algunas formas de optimizar las consultas en SQLAlchemy:
+
+#### **Uso Eficiente de `select()`**
+
+SQLAlchemy permite realizar consultas muy complejas, pero debes evitar cargar más datos de los necesarios. Utiliza `select()` para definir con precisión qué columnas o registros deseas obtener.
+
+```python
+# Ejemplo de una consulta que selecciona solo las columnas necesarias
+from sqlalchemy import select
+from myapp.models import User
+
+stmt = select(User.username, User.email).where(User.is_active == True)
+result = session.execute(stmt)
+```
+
+Al seleccionar solo las columnas que necesitas, puedes reducir la cantidad de datos que la base de datos debe devolver, lo que puede mejorar el rendimiento.
+
+#### **Paginación de Resultados**
+
+Cuando estás trabajando con grandes conjuntos de datos, es importante paginar los resultados para no sobrecargar la memoria y la red con demasiados registros en una sola consulta. SQLAlchemy facilita la paginación mediante el uso de `limit()` y `offset()`.
+
+```python
+# Paginación de resultados
+stmt = select(User).limit(10).offset(20)  # Obtiene los 10 registros comenzando desde el 21
+result = session.execute(stmt)
+```
+
+Esto es especialmente útil para tablas con muchos registros, como los resultados de búsqueda o listados largos.
+
+#### **Cargas Diferidas (Lazy Loading)**
+
+SQLAlchemy soporta distintos tipos de estrategias de carga cuando estás trabajando con relaciones entre modelos. El **lazy loading** (carga diferida) es útil cuando no necesitas cargar los objetos relacionados inmediatamente, ahorrando consultas innecesarias.
+
+```python
+from sqlalchemy.orm import relationship
+
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True)
+    profile = relationship("Profile", lazy="select")  # Carga diferida
+```
+
+Con `lazy="select"`, los datos relacionados solo se cargarán cuando sean solicitados, lo que previene el cargar información innecesaria.
+
+#### **Cargas Anticipadas (Eager Loading)**
+
+Si sabes que siempre necesitarás cargar los datos relacionados, puedes utilizar **eager loading** (carga anticipada) para evitar múltiples consultas separadas, optimizando el número de consultas realizadas a la base de datos.
+
+```python
+# Usando joinedload para hacer una carga anticipada
+from sqlalchemy.orm import joinedload
+
+stmt = select(User).options(joinedload(User.profile))
+result = session.execute(stmt)
+```
+
+Con `joinedload()`, SQLAlchemy ejecuta un `JOIN` en la consulta para traer los datos relacionados en una sola operación, evitando consultas adicionales.
+
+#### **Evitar Consultas N+1**
+
+El problema de las consultas N+1 ocurre cuando para cada objeto de una consulta principal, se realiza una consulta adicional para cargar datos relacionados. Esto puede ser extremadamente ineficiente cuando se tienen muchos objetos.
+
+Para evitar este problema, utiliza `joinedload()` o `selectinload()` para hacer una carga anticipada y reducir el número de consultas.
+
+```python
+# Solución al problema de N+1 con selectinload
+stmt = select(User).options(selectinload(User.profile))
+result = session.execute(stmt)
+```
+
+### **2. Gestión Eficiente del Pool de Conexiones**
+
+SQLAlchemy maneja las conexiones a la base de datos mediante un **pool de conexiones**, lo que permite reutilizar conexiones en lugar de abrir y cerrar una nueva para cada consulta. Aquí te mostramos cómo optimizar el uso del pool:
+
+#### **Ajuste del Tamaño del Pool**
+
+Dependiendo de la carga de tu aplicación, es posible que necesites ajustar el tamaño del pool para que maneje mejor el número de conexiones concurrentes.
+
+```python
+# Crear un motor con un tamaño de pool personalizado
+from sqlalchemy import create_engine
+
+engine = create_engine(
+    "postgresql+psycopg2://user:password@localhost/mydatabase",
+    pool_size=10,      # Tamaño del pool
+    max_overflow=20,   # Conexiones extra si el pool está lleno
+    pool_timeout=30,   # Tiempo de espera antes de lanzar un error
+)
+```
+
+- **`pool_size`**: El número máximo de conexiones persistentes en el pool.
+- **`max_overflow`**: El número de conexiones adicionales que se pueden abrir si el pool está lleno.
+- **`pool_timeout`**: El tiempo máximo que SQLAlchemy esperará antes de lanzar un error cuando no hay conexiones disponibles.
+
+### **3. Estrategias de Caché**
+
+Usar caché es otra técnica importante para mejorar el rendimiento de las aplicaciones. En lugar de consultar la base de datos repetidamente por los mismos datos, puedes almacenar los resultados de las consultas en un sistema de caché, como Redis o Memcached.
+
+SQLAlchemy no implementa caché de forma nativa, pero puedes combinarlo con otras bibliotecas para mejorar el rendimiento. Aquí te mostramos un ejemplo básico de cómo podrías implementar caché en tus consultas:
+
+```python
+import redis
+
+# Conexión a Redis
+cache = redis.Redis(host='localhost', port=6379)
+
+def get_user(user_id):
+    cached_user = cache.get(f"user:{user_id}")
+    if cached_user:
+        return cached_user  # Devuelve el usuario desde la caché
+    else:
+        user = session.query(User).filter_by(id=user_id).one_or_none()
+        if user:
+            cache.set(f"user:{user_id}", user, ex=60*5)  # Cachea el usuario por 5 minutos
+        return user
+```
+
+### **4. Uso de Índices en las Tablas**
+
+Para mejorar el rendimiento de las consultas, especialmente las que involucran filtrado o búsquedas en campos específicos, es recomendable definir **índices** en las columnas que se utilizan con frecuencia en las consultas.
+
+```python
+from sqlalchemy import Index
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String, index=True)  # Añadir un índice a la columna username
+
+# O crear un índice directamente en la tabla
+Index('idx_user_email', User.email)
+```
+
+Los índices ayudan a acelerar las consultas SELECT, especialmente cuando estás filtrando o buscando en grandes volúmenes de datos.
+
+### **5. Monitorización y Medición de Consultas**
+
+Es fundamental monitorear y medir el rendimiento de tus consultas SQL. SQLAlchemy te permite habilitar el modo de **logging** para ver todas las consultas que se ejecutan en la base de datos:
+
+```python
+# Habilitar logging para ver las consultas ejecutadas
+engine = create_engine("postgresql+psycopg2://user:password@localhost/mydatabase", echo=True)
+```
+
+También puedes utilizar herramientas externas como **New Relic** o **Datadog** para hacer seguimiento al rendimiento de las consultas en producción.
+
+### **6. Uso de Transacciones Eficientes**
+
+Las transacciones te permiten agrupar varias operaciones en una sola unidad de trabajo. Es importante gestionar las transacciones de manera eficiente para evitar bloqueos en la base de datos.
+
+```python
+# Uso eficiente de transacciones
+with session.begin():
+    session.add(new_user)
+    session.add(new_order)
+    # La transacción se confirma automáticamente al final del bloque
+```
+
+Es recomendable limitar el número de operaciones dentro de una misma transacción y evitar operaciones largas que puedan bloquear otros procesos.
+
+---
+
+### **Resumen del Punto 11:**
+
+1. **Optimización de Consultas**: Seleccionar solo las columnas necesarias, paginar resultados, y utilizar estrategias de carga (lazy/eager loading).
+2. **Pool de Conexiones**: Ajustar el tamaño del pool y gestionar el número de conexiones concurrentes.
+3. **Caché**: Implementar caché para consultas repetitivas usando sistemas como Redis.
+4. **Índices**: Añadir índices a las columnas utilizadas frecuentemente en consultas.
+5. **Monitorización**: Usar logging para medir el rendimiento de las consultas.
+6. **Transacciones**: Agrupar operaciones y gestionar transacciones de manera eficiente.
+
+---
+
+## **11. Buenas Prácticas y Optimización**
+
+Cuando trabajas con SQLAlchemy, hay varias estrategias que puedes aplicar para asegurarte de que tu aplicación sea eficiente, escalable y fácil de mantener. Optimizar consultas, gestionar correctamente las conexiones y seguir buenas prácticas generales son esenciales para sacar el máximo rendimiento de tu aplicación con SQLAlchemy.
+
+### **1. Optimización de Consultas**
+
+Las consultas ineficientes a la base de datos pueden ser una fuente importante de cuellos de botella en el rendimiento de una aplicación. Aquí hay algunas formas de optimizar las consultas en SQLAlchemy:
+
+#### **Uso Eficiente de `select()`**
+
+SQLAlchemy permite realizar consultas muy complejas, pero debes evitar cargar más datos de los necesarios. Utiliza `select()` para definir con precisión qué columnas o registros deseas obtener.
+
+```python
+# Ejemplo de una consulta que selecciona solo las columnas necesarias
+from sqlalchemy import select
+from myapp.models import User
+
+stmt = select(User.username, User.email).where(User.is_active == True)
+result = session.execute(stmt)
+```
+
+Al seleccionar solo las columnas que necesitas, puedes reducir la cantidad de datos que la base de datos debe devolver, lo que puede mejorar el rendimiento.
+
+#### **Paginación de Resultados**
+
+Cuando estás trabajando con grandes conjuntos de datos, es importante paginar los resultados para no sobrecargar la memoria y la red con demasiados registros en una sola consulta. SQLAlchemy facilita la paginación mediante el uso de `limit()` y `offset()`.
+
+```python
+# Paginación de resultados
+stmt = select(User).limit(10).offset(20)  # Obtiene los 10 registros comenzando desde el 21
+result = session.execute(stmt)
+```
+
+Esto es especialmente útil para tablas con muchos registros, como los resultados de búsqueda o listados largos.
+
+#### **Cargas Diferidas (Lazy Loading)**
+
+SQLAlchemy soporta distintos tipos de estrategias de carga cuando estás trabajando con relaciones entre modelos. El **lazy loading** (carga diferida) es útil cuando no necesitas cargar los objetos relacionados inmediatamente, ahorrando consultas innecesarias.
+
+```python
+from sqlalchemy.orm import relationship
+
+class User(Base):
+    __tablename__ = 'users'
+    
+    id = Column(Integer, primary_key=True)
+    profile = relationship("Profile", lazy="select")  # Carga diferida
+```
+
+Con `lazy="select"`, los datos relacionados solo se cargarán cuando sean solicitados, lo que previene el cargar información innecesaria.
+
+#### **Cargas Anticipadas (Eager Loading)**
+
+Si sabes que siempre necesitarás cargar los datos relacionados, puedes utilizar **eager loading** (carga anticipada) para evitar múltiples consultas separadas, optimizando el número de consultas realizadas a la base de datos.
+
+```python
+# Usando joinedload para hacer una carga anticipada
+from sqlalchemy.orm import joinedload
+
+stmt = select(User).options(joinedload(User.profile))
+result = session.execute(stmt)
+```
+
+Con `joinedload()`, SQLAlchemy ejecuta un `JOIN` en la consulta para traer los datos relacionados en una sola operación, evitando consultas adicionales.
+
+#### **Evitar Consultas N+1**
+
+El problema de las consultas N+1 ocurre cuando para cada objeto de una consulta principal, se realiza una consulta adicional para cargar datos relacionados. Esto puede ser extremadamente ineficiente cuando se tienen muchos objetos.
+
+Para evitar este problema, utiliza `joinedload()` o `selectinload()` para hacer una carga anticipada y reducir el número de consultas.
+
+```python
+# Solución al problema de N+1 con selectinload
+stmt = select(User).options(selectinload(User.profile))
+result = session.execute(stmt)
+```
+
+### **2. Gestión Eficiente del Pool de Conexiones**
+
+SQLAlchemy maneja las conexiones a la base de datos mediante un **pool de conexiones**, lo que permite reutilizar conexiones en lugar de abrir y cerrar una nueva para cada consulta. Aquí te mostramos cómo optimizar el uso del pool:
+
+#### **Ajuste del Tamaño del Pool**
+
+Dependiendo de la carga de tu aplicación, es posible que necesites ajustar el tamaño del pool para que maneje mejor el número de conexiones concurrentes.
+
+```python
+# Crear un motor con un tamaño de pool personalizado
+from sqlalchemy import create_engine
+
+engine = create_engine(
+    "postgresql+psycopg2://user:password@localhost/mydatabase",
+    pool_size=10,      # Tamaño del pool
+    max_overflow=20,   # Conexiones extra si el pool está lleno
+    pool_timeout=30,   # Tiempo de espera antes de lanzar un error
+)
+```
+
+- **`pool_size`**: El número máximo de conexiones persistentes en el pool.
+- **`max_overflow`**: El número de conexiones adicionales que se pueden abrir si el pool está lleno.
+- **`pool_timeout`**: El tiempo máximo que SQLAlchemy esperará antes de lanzar un error cuando no hay conexiones disponibles.
+
+### **3. Estrategias de Caché**
+
+Usar caché es otra técnica importante para mejorar el rendimiento de las aplicaciones. En lugar de consultar la base de datos repetidamente por los mismos datos, puedes almacenar los resultados de las consultas en un sistema de caché, como Redis o Memcached.
+
+SQLAlchemy no implementa caché de forma nativa, pero puedes combinarlo con otras bibliotecas para mejorar el rendimiento. Aquí te mostramos un ejemplo básico de cómo podrías implementar caché en tus consultas:
+
+```python
+import redis
+
+# Conexión a Redis
+cache = redis.Redis(host='localhost', port=6379)
+
+def get_user(user_id):
+    cached_user = cache.get(f"user:{user_id}")
+    if cached_user:
+        return cached_user  # Devuelve el usuario desde la caché
+    else:
+        user = session.query(User).filter_by(id=user_id).one_or_none()
+        if user:
+            cache.set(f"user:{user_id}", user, ex=60*5)  # Cachea el usuario por 5 minutos
+        return user
+```
+
+### **4. Uso de Índices en las Tablas**
+
+Para mejorar el rendimiento de las consultas, especialmente las que involucran filtrado o búsquedas en campos específicos, es recomendable definir **índices** en las columnas que se utilizan con frecuencia en las consultas.
+
+```python
+from sqlalchemy import Index
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String, index=True)  # Añadir un índice a la columna username
+
+# O crear un índice directamente en la tabla
+Index('idx_user_email', User.email)
+```
+
+Los índices ayudan a acelerar las consultas SELECT, especialmente cuando estás filtrando o buscando en grandes volúmenes de datos.
+
+### **5. Monitorización y Medición de Consultas**
+
+Es fundamental monitorear y medir el rendimiento de tus consultas SQL. SQLAlchemy te permite habilitar el modo de **logging** para ver todas las consultas que se ejecutan en la base de datos:
+
+```python
+# Habilitar logging para ver las consultas ejecutadas
+engine = create_engine("postgresql+psycopg2://user:password@localhost/mydatabase", echo=True)
+```
+
+También puedes utilizar herramientas externas como **New Relic** o **Datadog** para hacer seguimiento al rendimiento de las consultas en producción.
+
+### **6. Uso de Transacciones Eficientes**
+
+Las transacciones te permiten agrupar varias operaciones en una sola unidad de trabajo. Es importante gestionar las transacciones de manera eficiente para evitar bloqueos en la base de datos.
+
+```python
+# Uso eficiente de transacciones
+with session.begin():
+    session.add(new_user)
+    session.add(new_order)
+    # La transacción se confirma automáticamente al final del bloque
+```
+
+Es recomendable limitar el número de operaciones dentro de una misma transacción y evitar operaciones largas que puedan bloquear otros procesos.
 
 ---

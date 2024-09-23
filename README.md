@@ -12,7 +12,7 @@ Aclaro que estas guias estan hechas a partir de experiencia y IA para poder expr
     - [Guía de Python](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/python_gu%C3%ADa)
     - [Guía de aprendizaje general de backend](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/backend_gu%C3%ADa)
     - [Guía de FastAPI](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/fastapi_gu%C3%ADa)
-    - [Guía de SQLAlchemy]()
+    - [Guía de SQLAlchemy](https://github.com/Abiel-Kuma/Guias_Para_NoodDev/tree/main/sqlAlchemy_guia)
 4. [Contribuir](#contribuir)
 
 ## Contribuir
